@@ -1,0 +1,5 @@
+PySide6==6.9.1
+PySide6_Addons==6.9.1
+PySide6_Essentials==6.9.1
+pystyle==2.9
+shiboken6==6.9.1

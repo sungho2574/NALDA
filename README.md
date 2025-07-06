@@ -6,8 +6,48 @@
 
 - 팀장 : 김성호
 
-# Prerequisites
+# 프로젝트 구조
 
-- Python 3.12.11
-- PyQt5 5.15.11
-- pyserial
+```
+NALDA/
+├── src/                    # 화면 구성 관련 소스코드
+│   ├── assets/             # 이미지, 폰트 등의 정적 파일
+│   │   ├── fonts/          # 폰트
+│   │   └── icons/          # 아이콘
+│   ├── components/         # 재사용 가능한 공통 컴포넌트
+│   ├── pages/              # 페이지 컴포넌트
+│   ├── themes/             # 색상 등 테마 관리
+│   └── main.qml            # QML 진입점
+├── main.py                 # 메인 파일
+└── requirements.txt        # 파이썬 의존성 패키지 목록
+```
+
+# 실행 방법
+
+## Python 가상환경 구성
+
+- Python 3.13.11
+
+1. 가상 환경 생성
+
+```bash
+python venv -p 3.13.11
+```
+
+2. 가상 환경 활성화
+
+```bash
+.\venv\Scripts\activate
+```
+
+3. 의존성 설치
+
+```bash
+pip install -r requirements.txt
+```
+
+## 실행
+
+```bash
+python main.py
+```
