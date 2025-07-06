@@ -26,12 +26,12 @@ NALDA/
 
 ## Python 가상환경 구성
 
-- Python 3.13.11
+- Python 3.12.11
 
 1. 가상 환경 생성
 
 ```bash
-python venv -p 3.13.11
+python venv -p 3.12.11
 ```
 
 2. 가상 환경 활성화
