@@ -8,13 +8,6 @@ Rectangle {
     Layout.fillHeight: true
     Layout.fillWidth: true
     color: "#1a1a1a"
-
-     // 샘플 데이터
-    property var tableData: [
-        { device: "/dev/cu.wlan-debug", description: "n/a" },
-        { device: "/dev/cu.debug-console", description: "n/a" },
-        { device: "/dev/cu.Bluetooth-Incoming-Port", description: "n/a" },
-    ]
     
 
     Rectangle {
@@ -116,7 +109,7 @@ Rectangle {
                                     
                                     ListView {
                                         id: tableListView
-                                        model: initializePage.tableData
+                                        model: initializePortSelect.tableData
                                         
                                         delegate: Rectangle {
                                             id: tableRow
@@ -125,13 +118,19 @@ Rectangle {
                                             
                                             width: tableListView.width
                                             height: 40
-                                            color: "#2a2a2a"
-                                            
+
+                                            color: tableRow.ListView.isCurrentItem ? "#4CAF50" 
+                                                : (mouseArea.hovered ? "#3a3a3a" 
+                                                : "#2a2a2a")
+
                                             MouseArea {
+                                                id : mouseArea
                                                 anchors.fill: parent
                                                 hoverEnabled: true
-                                                onEntered: tableRow.color = "#3a3a3a"
-                                                onExited: tableRow.color = "#2a2a2a"
+
+                                                onClicked: {
+                                                    tableListView.currentIndex = index
+                                                }
                                             }
                                             
                                             RowLayout {
@@ -166,6 +165,11 @@ Rectangle {
                                                 visible: tableRow.index !== tableListView.count - 1
                                             }
                                         }
+
+                                        Component.onCompleted: {
+                                            // 초기 선택 상태 설정
+                                            tableListView.currentIndex = -1;
+                                        }
                                     }
                                 }
                             }
@@ -193,6 +197,7 @@ Rectangle {
                                 font.bold: true
                             }
                             ComboBox {
+                                id: baudRateComboBox
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 40
                                 model: [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
@@ -221,9 +226,20 @@ Rectangle {
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                             }
+
+                             // 5. 버튼 클릭 시 Python의 connect_button_clicked 함수 호출
                             onClicked: {
-                                console.log("연결 버튼 클릭됨")
-                                // 연결 로직 추가
+                                if (tableListView.currentIndex === -1) {
+                                    console.log("포트를 선택해주세요.");
+                                    return;
+                                }
+                                // backend
+                                // 선택된 항목의 데이터와 보율을 인자로 전달
+                                initializePortSelect.connect_button_clicked(
+                                    tableListView.model[tableListView.currentIndex].device,
+                                    tableListView.model[tableListView.currentIndex].description,
+                                    baudRateComboBox.currentValue
+                                )
                             }
                         }
                     }
