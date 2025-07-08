@@ -8,13 +8,10 @@ import QtPositioning 5.15
 import "./components" as Components
 
 
-ApplicationWindow {
+Rectangle {
     id: mainWindow
-    visible: true
-    width: Screen.width
-    height: Screen.height
+    anchors.fill: parent
     color: "#1a1a1a"
-    title: "NALDA"
     
     // Material 테마 설정
     Material.theme: Material.Dark
@@ -29,17 +26,14 @@ ApplicationWindow {
         onActivated: Qt.quit()
     }
 
-    property string currentPage: "MainPanel"
+    property string currentPage: "FLIGHT"
     
     // 페이지 매핑을 한 곳에서 관리
     readonly property var pageMap: ({
-        "Initialize": "pages/Initialize.qml",
-        "FlightPlanning": "pages/FlightPlanning.qml",
-        "MainPanel": "pages/MainPanel.qml",
-        "Rescue": "pages/Rescue.qml",
-        "Landing": "pages/Landing.qml",
-        "AdvancedMonitoring": "pages/AdvancedMonitoring.qml",
-        "PFDND": "pages/PFDND.qml"
+        "SETUP": "pages/setup/index.qml",
+        "PLAN": "pages/plan/index.qml",
+        "FLIGHT": "pages/flight/index.qml",
+        "CONFIG": "pages/config/index.qml"
     })
     
     // 메인 레이아웃
@@ -67,7 +61,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 20
                 
-                source: mainWindow.pageMap[mainWindow.currentPage] || mainWindow.pageMap["MainPanel"]
+                source: mainWindow.pageMap[mainWindow.currentPage] || mainWindow.pageMap["FLIGHT"]
             }
         }
     }

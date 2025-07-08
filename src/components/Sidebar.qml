@@ -10,15 +10,12 @@ Rectangle {
     signal pageSelected(string pageName)
     
     property var menuItems: [
-        { name: "Initialize", page: "Initialize", icon: "../assets/icons/sidebar/usb.svg" },
-        { name: "Flight Planning", page: "FlightPlanning", icon: "../assets/icons/sidebar/map.svg" },
-        { name: "Main Panel", page: "MainPanel", icon: "../assets/icons/sidebar/dashboard.svg" },
-        { name: "Rescue", page: "Rescue", icon: "../assets/icons/sidebar/accessibility.svg" },
-        { name: "Landing", page: "Landing", icon: "../assets/icons/sidebar/flight_land.svg" },
-        { name: "Advanced Monitoring", page: "AdvancedMonitoring", icon: "../assets/icons/sidebar/monitoring.svg" },
-        { name: "PFD & ND", page: "PFDND", icon: "../assets/icons/sidebar/simulation.svg" },
+        { name: "SETUP", page: "SETUP", icon: "../assets/icons/sidebar/usb.svg" },
+        { name: "PLAN", page: "PLAN", icon: "../assets/icons/sidebar/map.svg" },
+        { name: "FLIGHT", page: "FLIGHT", icon: "../assets/icons/sidebar/flight.svg" },
+        { name: "CONFIG", page: "CONFIG", icon: "../assets/icons/sidebar/settings.svg" },
     ]
-    property string selectedPage: "MainPanel"
+    property string selectedPage: "FLIGHT"
     
 
     ColumnLayout {
@@ -65,6 +62,9 @@ Rectangle {
                         sidebar.selectedPage = menuItem.modelData.page
                         sidebar.pageSelected(menuItem.modelData.page)
                         
+                        // 도크 영역 토글
+                        dockManager.toggle_dock_area(menuItem.modelData.page)
+                        
                         // 모든 메뉴 아이템의 색상을 강제로 업데이트
                         for (let i = 0; i < menuRepeater.count; i++) {
                             menuRepeater.itemAt(i).updateColor()
@@ -72,6 +72,10 @@ Rectangle {
                     }
                     
                     onEntered: {
+                        // Python 툴팁 매니저 호출 - 전역 좌표 계산
+                        var globalPos = menuItem.mapToGlobal(menuItem.width + 10, menuItem.height / 2 - 30)
+                        tooltipManager.show_tooltip(menuItem.modelData.name, globalPos.x, globalPos.y)
+
                         if (sidebar.selectedPage === menuItem.modelData.page) {
                             return
                         } 
@@ -83,30 +87,31 @@ Rectangle {
                         } else {
                             menuItem.color = "#2a2a2a"
                         }
+                        tooltipManager.hide_tooltip()
                     }
                     
-                    ToolTip {
-                        visible: parent.containsMouse
-                        background: Rectangle {
-                            color: "#3a3a3a"
-                            radius: 6
-                            border.color: "#606060"
-                            border.width: 1
-                        }
+                    // ToolTip {
+                    //     visible: parent.containsMouse
+                    //     background: Rectangle {
+                    //         color: "#3a3a3a"
+                    //         radius: 6
+                    //         border.color: "#606060"
+                    //         border.width: 1
+                    //     }
                         
-                        contentItem: Text {
-                            text: menuItem.modelData.name
-                            color: "#d4d4d4"
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            padding: 2
-                        }
+                    //     contentItem: Text {
+                    //         text: menuItem.modelData.name
+                    //         color: "#d4d4d4"
+                    //         font.pixelSize: 14
+                    //         horizontalAlignment: Text.AlignHCenter
+                    //         verticalAlignment: Text.AlignVCenter
+                    //         padding: 2
+                    //     }
                         
-                        // 툴팁 위치 조정 (오른쪽으로 표시)
-                        x: parent.width + 15
-                        y: parent.height / 2 - height / 2
-                    }
+                    //     // 툴팁 위치 조정 (오른쪽으로 표시)
+                    //     x: parent.width + 15
+                    //     y: parent.height / 2 - height / 2
+                    // }
                 }
 
                 Image {

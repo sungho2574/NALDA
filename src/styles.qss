@@ -1,0 +1,54 @@
+QMainWindow {
+    background-color: #1a1a1a;
+}
+
+QMenuBar {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+}
+QMenuBar::item {
+    background-color: transparent;
+    padding: 8px 12px;
+    margin: 0px;
+}
+QMenuBar::item:selected {
+    background-color: #2a2a2a;
+    border-radius: 4px;
+}
+
+QMenu {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #333333;
+    border-radius: 4px;
+}
+QMenu::item {
+    padding: 8px 20px;
+}
+QMenu::item:selected {
+    background-color: #2a2a2a;
+}
+
+QDockWidget {
+    background-color: #1a1a1a;
+    color: #1a1a1a;
+    border: none;
+}
+QDockWidget::title {
+    background-color: #1a1a1a;
+    color: #1a1a1a;
+    border: none;
+    padding: 0px;
+    height: 0px
+}
+
+
+/* 도크 위젯들 사이의 구분선 제거 */
+QMainWindow::separator {
+    border: none;
+}
+
+QMainWindow::separator:hover {
+    border: 2px solid #333333;
+}

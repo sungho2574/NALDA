@@ -1,44 +1,238 @@
-import os
 import sys
 
-from src.modules.backend import *
+from PySide6.QtWidgets import QApplication, QMainWindow, QDockWidget
+from PySide6.QtCore import QUrl, Qt
+from PySide6.QtGui import QFontDatabase, QFont
+from PySide6.QtQuickWidgets import QQuickWidget
 
-from PySide6.QtGui import QGuiApplication, QFontDatabase, QFont
-from PySide6.QtQml import QQmlApplicationEngine
-
-
-def resource_path(relative_path: str) -> str:
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from backend import *
+from backend.utils import resource_path
 
 
-if __name__ == "__main__":
-    app = QGuiApplication(sys.argv)
-    engine = QQmlApplicationEngine()
+class MainWindow(QMainWindow):
 
-    # 폰트 로드
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("NALDA")
+
+        # 스타일시트 로드
+        self.load_stylesheet()
+
+        # 중앙 위젯 설정
+        self.setup_central_widget()
+
+        # 도크 위젯들 생성
+        self.setup_dock_widgets()
+
+        # 메뉴바 설정
+        self.setup_menu_bar()
+
+        # 도크 영역 초기 상태 설정
+        self.dock_area_visible = True
+        self.dock_area_width = self.width() - 80
+
+        # 윈도우 크기 변경 이벤트 연결
+        self.resizeEvent = self.on_resize
+
+        # 초기 도크 너비 설정
+        self.set_dock_width(self.dock_area_width)
+
+        # 전체화면으로 변경
+        # 마지막에 호출해야 레이아웃이 제대로 적용됨
+        self.showMaximized()
+
+    def load_stylesheet(self):
+        """스타일시트 파일 로드"""
+        try:
+            with open(resource_path("src/styles.qss"), 'r', encoding='utf-8') as file:
+                stylesheet = file.read()
+                self.setStyleSheet(stylesheet)
+        except FileNotFoundError:
+            print(f"스타일시트 파일을 찾을 수 없습니다:")
+        except Exception as e:
+            print(f"스타일시트 로드 중 오류 발생: {e}")
+
+    def setup_central_widget(self):
+        """중앙 위젯 설정"""
+        central_widget = QQuickWidget()
+        qml_file = resource_path("src/main.qml")
+        central_widget.setSource(QUrl.fromLocalFile(qml_file))
+        central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
+
+        # QML 컨텍스트에 매니저들 등록
+        self.tooltip_manager = TooltipManager()
+        self.dock_manager = DockManager(self)
+        self.port_manager = InitializePortSelect()
+
+        context = central_widget.rootContext()
+        context.setContextProperty("tooltipManager", self.tooltip_manager)
+        context.setContextProperty("dockManager", self.dock_manager)
+        context.setContextProperty("initializePortSelect", self.port_manager)
+
+        self.setCentralWidget(central_widget)
+
+    def setup_dock_widgets(self):
+        """도크 위젯들 설정"""
+        # 상단 왼쪽 도크
+        self.dock_top_left = QDockWidget('카메라', self)
+        widget_top_left = DockableWidget('카메라', "src/pages/flight/Camera.qml")
+        self.dock_top_left.setWidget(widget_top_left)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_left)
+
+        # 상단 오른쪽 도크
+        self.dock_top_right = QDockWidget("PFD", self)
+        widget_top_right = DockableWidget("PFD", "src/pages/flight/PFD.qml")
+        self.dock_top_right.setWidget(widget_top_right)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_right)
+
+        # 하단 왼쪽 도크
+        self.dock_bottom_left = QDockWidget("ND", self)
+        widget_bottom_left = DockableWidget("ND", "src/pages/flight/ND.qml")
+        self.dock_bottom_left.setWidget(widget_bottom_left)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_left)
+
+        # 하단 오른쪽 도크
+        self.dock_bottom_right = QDockWidget("Etc Panels", self)
+        widget_bottom_right = DockableWidget(
+            "Etc Panels", "src/pages/flight/EtcPanels.qml")
+        self.dock_bottom_right.setWidget(widget_bottom_right)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_right)
+
+        # 도크 목록 생성
+        self.docks = [
+            self.dock_top_left,
+            self.dock_top_right,
+            self.dock_bottom_left,
+            self.dock_bottom_right
+        ]
+
+        # 도크 위젯들을 4분할로 배치
+        # 1단계: 상단 도크들을 좌우로 배치
+        self.splitDockWidget(self.dock_top_left, self.dock_top_right, Qt.Horizontal)
+
+        # 2단계: 하단 도크들을 좌우로 배치
+        self.splitDockWidget(self.dock_bottom_left, self.dock_bottom_right, Qt.Horizontal)
+
+        # 3단계: 상단과 하단을 상하로 분할 (오른쪽도 함께)
+        self.splitDockWidget(self.dock_top_left, self.dock_bottom_left, Qt.Vertical)
+        self.splitDockWidget(self.dock_top_right, self.dock_bottom_right, Qt.Vertical)
+
+        # 모든 도크 위젯은 우측 독에만 도킹 가능하게 제한
+        for dock in self.docks:
+            dock.setAllowedAreas(Qt.RightDockWidgetArea)
+
+        # 도크 위젯 특성 설정
+        for dock in self.docks:
+            dock.setFeatures(QDockWidget.DockWidgetMovable |
+                             QDockWidget.DockWidgetFloatable |
+                             QDockWidget.DockWidgetClosable)
+
+    def setup_menu_bar(self):
+        """메뉴바 설정"""
+        menubar = self.menuBar()
+        menubar.setNativeMenuBar(True)  # macOS에서 시스템 메뉴바 허용
+
+        # 보기 메뉴
+        view_menu = menubar.addMenu('보기')
+
+        # 레이아웃 복원 액션
+        reset_layout_action = view_menu.addAction('레이아웃 복원 (Ctrl+R)')
+        reset_layout_action.setShortcut('Ctrl+R')
+        reset_layout_action.triggered.connect(self.reset_dock_layout)
+
+        view_menu.addSeparator()
+
+    def toggle_dock_area(self):
+        """도크 영역 토글"""
+        self.dock_area_visible = not self.dock_area_visible
+
+        for dock in self.docks:
+            if self.dock_area_visible:
+                dock.show()
+                # 도크가 플로팅 상태가 아니라면 다시 도킹
+                if dock.isFloating():
+                    dock.setFloating(False)
+                self.addDockWidget(Qt.RightDockWidgetArea, dock)
+            else:
+                dock.hide()
+
+        if self.dock_area_visible:
+            # 도크 영역이 다시 보일 때 레이아웃 복원
+            self.reset_dock_layout()
+            # 고정 너비 설정
+            self.set_dock_width(self.dock_area_width)
+
+    def set_dock_width(self, width):
+        """도크 영역 너비 설정"""
+        self.dock_area_width = width
+
+        if self.dock_area_visible:
+            # 도크 위젯들의 최소 너비 설정 (사용자가 드래그로 조정 가능)
+            for dock in self.docks:
+                if dock.widget():
+                    # 초기 너비 설정
+                    # 더 나은 방법 없을까
+                    dock.widget().setFixedWidth(self.dock_area_width // 2)  # 초기 너비 설정
+                    dock.widget().setFixedWidth(0)  # 고정 해제
+                    dock.widget().setMaximumWidth(16777215)  # Qt의 최대값
+
+            # 전체 도크 영역 크기 조정
+            # 상단과 하단 도크들을 각각 조정
+            self.resizeDocks([self.dock_top_left, self.dock_top_right],
+                             [width // 2, width // 2], Qt.Horizontal)
+            self.resizeDocks([self.dock_bottom_left, self.dock_bottom_right],
+                             [width // 2, width // 2], Qt.Horizontal)
+
+    def reset_dock_layout(self):
+        """도크 레이아웃을 4분할로 복원"""
+        if not self.dock_area_visible:
+            return
+
+        # 모든 도크 위젯을 다시 표시하고 오른쪽 영역에 추가
+        for dock in self.docks:
+            if not dock.isVisible():
+                dock.show()
+            # 플로팅 상태라면 도킹으로 돌리기
+            if dock.isFloating():
+                dock.setFloating(False)
+            self.addDockWidget(Qt.RightDockWidgetArea, dock)
+
+        # 4분할 레이아웃 다시 적용
+        self.splitDockWidget(self.dock_top_left, self.dock_top_right, Qt.Horizontal)
+        self.splitDockWidget(self.dock_bottom_left, self.dock_bottom_right, Qt.Horizontal)
+        self.splitDockWidget(self.dock_top_left, self.dock_bottom_left, Qt.Vertical)
+        self.splitDockWidget(self.dock_top_right, self.dock_bottom_right, Qt.Vertical)
+
+        # 너비 설정 적용
+        self.set_dock_width(self.dock_area_width)
+
+    def on_resize(self, event):
+        """윈도우 크기 변경 시 도크 영역 너비 조정"""
+        super().resizeEvent(event)
+        if self.dock_area_visible:
+            self.dock_area_width = self.width() - 80
+            self.set_dock_width(self.dock_area_width)
+
+
+def main():
+    app = QApplication(sys.argv)
+
+    # 폰트 설정
     font_path = resource_path("src/assets/fonts/PretendardVariable.ttf")
     font_id = QFontDatabase.addApplicationFont(font_path)
     if font_id != -1:
         family = QFontDatabase.applicationFontFamilies(font_id)[0]
         app.setFont(QFont(family))
     else:
-        print("Pretendard 폰트 로드 실패")
+        print("Pretendard 폰트 설정 실패")
         sys.exit(-1)
 
-    # Backend 인스턴스 생성
-    backend = InitializePortSelect()
-
-    # Backend 인스턴스를 "backend"라는 이름으로 QML의 전역 컨텍스트 속성에 등록
-    engine.rootContext().setContextProperty("initializePortSelect", backend)
-
-    # QML 파일 로드
-    engine.load("src/main.qml")
-
-    if not engine.rootObjects():
-        sys.exit(-1)
-
-    backend.initialize_list()
+    # 메인 윈도우 생성 및 표시
+    window = MainWindow()
+    window.show()
 
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

@@ -10,7 +10,7 @@ Rectangle {
     Layout.margins: 20
 
     Text {
-        text: "수동 비행 시 표시할 화면"
+        text: "config"
         color: "white"
         font.pixelSize: 20
         anchors.centerIn: parent
