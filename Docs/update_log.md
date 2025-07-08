@@ -1,5 +1,11 @@
 # Update Log
 
+## 2025.07.08
+
+- QDockWidget 적용
+- 사이드바 메뉴 정리
+- 폴더 구조 정리
+
 ## 2025.07.07
 
 - Port device list 목록 불러오는 코드 작성
