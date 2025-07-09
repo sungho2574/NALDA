@@ -52,7 +52,6 @@ Item {
         }
 
         // 카메라 전환 버튼 오버레이
-        // 영상 위에 반투명 배경으로 버튼을 띄움
         // 버튼 클릭 시 cameraType이 바뀌고, 이에 따라 영상이 자동 전환됨
         Rectangle {
             anchors.top: parent.top
