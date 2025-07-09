@@ -17,17 +17,6 @@ Rectangle {
     Material.theme: Material.Dark
     Material.accent: Material.Blue
     
-    // 전체화면 설정
-    // visibility: Window.FullScreen
-    
-    // ESC 키로 종료
-    Shortcut {
-        sequence: "Escape"
-        onActivated: Qt.quit()
-    }
-
-    property string currentPage: "FLIGHT"
-    
     // 페이지 매핑을 한 곳에서 관리
     readonly property var pageMap: ({
         "SETUP": "pages/setup/index.qml",
@@ -35,7 +24,9 @@ Rectangle {
         "FLIGHT": "pages/flight/index.qml",
         "CONFIG": "pages/config/index.qml"
     })
+    property string currentPage: "FLIGHT"
     
+
     // 메인 레이아웃
     RowLayout {
         anchors.fill: parent
