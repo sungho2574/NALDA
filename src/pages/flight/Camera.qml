@@ -29,7 +29,7 @@ Item {
     // 영상 및 오버레이 UI
     Rectangle {
         anchors.fill: parent
-        color: "#000000" // 영상 배경색
+        color: "#000000" 
         radius: 6
 
         // 실제 영상 출력
