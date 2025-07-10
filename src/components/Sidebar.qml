@@ -89,29 +89,6 @@ Rectangle {
                         }
                         tooltipManager.hide_tooltip()
                     }
-                    
-                    // ToolTip {
-                    //     visible: parent.containsMouse
-                    //     background: Rectangle {
-                    //         color: "#3a3a3a"
-                    //         radius: 6
-                    //         border.color: "#606060"
-                    //         border.width: 1
-                    //     }
-                        
-                    //     contentItem: Text {
-                    //         text: menuItem.modelData.name
-                    //         color: "#d4d4d4"
-                    //         font.pixelSize: 14
-                    //         horizontalAlignment: Text.AlignHCenter
-                    //         verticalAlignment: Text.AlignVCenter
-                    //         padding: 2
-                    //     }
-                        
-                    //     // 툴팁 위치 조정 (오른쪽으로 표시)
-                    //     x: parent.width + 15
-                    //     y: parent.height / 2 - height / 2
-                    // }
                 }
 
                 Image {
