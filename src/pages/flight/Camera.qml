@@ -3,8 +3,9 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtMultimedia 5.15
 
-Item {
+Rectangle {
     id: videoStream
+    color: "#1a1a1a"
 
     // 카메라 타입을 결정하는 프로퍼티
     // "forward"(전방) 또는 "downward"(하방) 값을 가짐
@@ -30,7 +31,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: "#000000" 
-        radius: 6
+        radius: 8
 
         // 실제 영상 출력
         Video {

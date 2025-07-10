@@ -167,21 +167,24 @@ class MainWindow(QMainWindow):
         self.dock_area_width = width
 
         if self.dock_area_visible:
-            # 도크 위젯들의 최소 너비 설정 (사용자가 드래그로 조정 가능)
+            # 최소 크기 제한
             for dock in self.docks:
                 if dock.widget():
-                    # 초기 너비 설정
-                    # 더 나은 방법 없을까
-                    dock.widget().setFixedWidth(self.dock_area_width // 2)  # 초기 너비 설정
-                    dock.widget().setFixedWidth(0)  # 고정 해제
-                    dock.widget().setMaximumWidth(16777215)  # Qt의 최대값
+                    dock.widget().setMinimumWidth(200)
+                    dock.widget().setMinimumHeight(200)
 
-            # 전체 도크 영역 크기 조정
+            # 사분할 배치
             # 상단과 하단 도크들을 각각 조정
-            self.resizeDocks([self.dock_top_left, self.dock_top_right],
-                             [width // 2, width // 2], Qt.Horizontal)
-            self.resizeDocks([self.dock_bottom_left, self.dock_bottom_right],
-                             [width // 2, width // 2], Qt.Horizontal)
+            self.resizeDocks(
+                [self.dock_top_left, self.dock_top_right],
+                [width // 2, width // 2],
+                Qt.Horizontal
+            )
+            self.resizeDocks(
+                [self.dock_bottom_left, self.dock_bottom_right],
+                [width // 2, width // 2],
+                Qt.Horizontal
+            )
 
     def reset_dock_layout(self):
         """도크 레이아웃을 4분할로 복원"""
