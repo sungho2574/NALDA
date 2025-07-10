@@ -4,190 +4,184 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 
 Rectangle {
-    id: initializePage
+    id: setupComponent
     Layout.fillHeight: true
     Layout.fillWidth: true
     color: "#1a1a1a"
-    
+
+    property string connectionStatusText: "연결 대기"
+    property color connectionStatusColor: "#555555"
+
+    property var menuItems: [
+        { id: 1, name: "보드 연결", page: "SETUP" },
+        { id: 2, name: "다음 메뉴", page: "MENU" },
+        { id: 3, name: "다음 메뉴", page: "MENU" },
+        { id: 4, name: "다음 메뉴", page: "MENU" },
+        { id: 5, name: "다음 메뉴", page: "MENU" },
+        { id: 6, name: "다음 메뉴", page: "MENU" }
+    ]
+    property int selectedPageId: 1
+
+
+    Component.onCompleted: {
+        // 1초 후 포트 목록 업데이트
+        startupTimer.start()
+    }
+
+    Timer {
+        id: startupTimer
+        interval: 400
+        repeat: false
+        onTriggered: updatePortList()
+    }
+
+    // 포트 목록 업데이트 함수
+    function updatePortList() {
+        if (typeof initializePortSelect !== 'undefined' && initializePortSelect !== null) {
+            portComboBox.model = initializePortSelect.get_port_list() || []
+        }
+    }
+
 
     Rectangle {
-        width: 800
-        height: 600
-        anchors.centerIn: parent
+        anchors.fill: parent
+        anchors.leftMargin: 0
+        anchors.rightMargin: 0
+        anchors.topMargin: 0
+        anchors.bottomMargin: 0
         color: "#2a2a2a"
         radius: 8
 
-        ColumnLayout {
+        RowLayout{
             anchors.fill: parent
-            anchors.margins: 20
+            spacing: 10
 
-            // 제목
-            Text {
-                text: "포트 설정"
-                font.pixelSize: 20
-                font.weight: 700
-                color: "white"
-                Layout.bottomMargin: 15
-            }
+            // 설정 사이드바
+            Rectangle {
+                Layout.preferredWidth: 200
+                Layout.fillHeight: true
+                Layout.margins: 20
+                color: "#2a2a2a"
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 20
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 10
 
-                Rectangle {
-                    Layout.fillHeight: true
-                    width: 500
+                    Repeater {
+                        id: menuRepeater
+                        model: setupComponent.menuItems
 
-                    color: "#2a2a2a"
+                        delegate: Rectangle {
+                            id: menuItem
+                            required property var modelData
 
-                    // 포트 목록
-                    // 테이블
-                    Rectangle {
-                        anchors.fill: parent
-                        border.color: "#606060"
-                        border.width: 1
-                        radius: 8
-                        color: "#2a2a2a"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 40
+                            Layout.alignment: Qt.AlignHCenter
+                            radius: 8
+                            color: setupComponent.selectedPageId === menuItem.modelData.id ? "#3a3a3a" : "#2a2a2a"
 
-                        
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 1
-                            spacing: 0
-                            
-                            // 테이블 헤더
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 40
-                                color: "#2a2a2a"
-                                topLeftRadius: 8
-                                topRightRadius: 8
-                                
-                                Rectangle {
-                                    anchors.bottom: parent.bottom
-                                    width: parent.width
-                                    height: 1
-                                    color: "#606060"
-                                }
-                                
-                                
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 15
-                                    anchors.rightMargin: 15
-                                    spacing: 0
-                                    
-                                    Text {
-                                        text: "port"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        color: "white"
-                                        Layout.preferredWidth: 300
-                                    }
-                                    
-                                    Text {
-                                        text: "description"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        color: "white"
-                                        Layout.fillWidth: true
-                                    }
+                            function updateColor() {
+                                if (setupComponent.selectedPageId === menuItem.modelData.id) {
+                                    color = "#1a1a1a"
+                                } else {
+                                    color = "#2a2a2a"
                                 }
                             }
 
-                            
-                            // 테이블 내용
-                            Rectangle {
+                            Text {
+                                text: modelData.name
+                                color: "#dddddd"
+                                font.pixelSize: 16
+                                font.weight: 600
+                                anchors.centerIn: parent
+                            }
+                        }
+                    }
+
+                    // 여백
+                    Item {
+                        Layout.fillHeight: true
+                    }
+                }
+            }
+
+            // 컨텐츠 영역
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.margins: 20
+                color: "#2a2a2a"
+
+                ColumnLayout {
+                    anchors.fill: parent
+
+                    Text {
+                        text: "보드 연결"
+                        color: "white"
+                        font.pixelSize: 24
+                        font.bold: true
+                    }
+
+                    ColumnLayout {
+                        Layout.topMargin: 20
+
+                        // 포트 선택
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Text {
+                                text: "Port"
+                                color: "#999999"
+                                font.pixelSize: 14
+                                font.bold: true
+                            }
+
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                color: "#2a2a2a"
-                                radius: 8
-                                clip: true
+                                Layout.preferredHeight: 40
 
-                                ScrollView {
-                                    anchors.fill: parent
-                                    
-                                    ListView {
-                                        id: tableListView
-                                        model: initializePortSelect.tableData
-                                        
-                                        delegate: Rectangle {
-                                            id: tableRow
-                                            required property int index
-                                            required property var modelData
-                                            
-                                            width: tableListView.width
-                                            height: 40
+                                ComboBox {
+                                    id: portComboBox
+                                    Layout.preferredWidth: 300
+                                    Layout.preferredHeight: 40
+                                    model: []
+                                    textRole: "display"
+                                    valueRole: "device"
+                                    currentIndex: -1
+                                }
 
-                                            color: tableRow.ListView.isCurrentItem ? "#4CAF50" 
-                                                : (mouseArea.hovered ? "#3a3a3a" 
-                                                : "#2a2a2a")
+                                Button {
+                                    id: refreshButton
+                                    Layout.preferredWidth: 40
+                                    Layout.preferredHeight: 40
 
-                                            MouseArea {
-                                                id : mouseArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
+                                    background: Rectangle {
+                                        color: refreshButton.hovered ? "#666666" : "#555555"
+                                        radius: 6
+                                    }
 
-                                                onClicked: {
-                                                    tableListView.currentIndex = index
-                                                }
-                                            }
-                                            
-                                            RowLayout {
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 5
-                                                anchors.rightMargin: 5
-                                                spacing: 0
-                                                
-                                                Text {
-                                                    text: tableRow.modelData.device
-                                                    font.pixelSize: 14
-                                                    color: "white"
-                                                    Layout.preferredWidth: 300
-                                                    elide: Text.ElideRight
-                                                    Layout.leftMargin: 10
-                                                }
-                                                
-                                                Text {
-                                                    text: tableRow.modelData.description
-                                                    font.pixelSize: 14
-                                                    color: "white"
-                                                    Layout.fillWidth: true
-                                                    elide: Text.ElideRight
-                                                }
-                                            }
-                                            
-                                            Rectangle {
-                                                anchors.bottom: parent.bottom
-                                                width: parent.width
-                                                height: 1
-                                                color: "#606060"
-                                                visible: tableRow.index !== tableListView.count - 1
-                                            }
-                                        }
+                                    Image {
+                                        source: "../../assets/icons/refresh.svg"
+                                        sourceSize.width: 16
+                                        sourceSize.height: 16
+                                        anchors.centerIn: parent
+                                        fillMode: Image.PreserveAspectFit
+                                    }
 
-                                        Component.onCompleted: {
-                                            // 초기 선택 상태 설정
-                                            tableListView.currentIndex = -1;
-                                        }
+                                    onClicked: {
+                                        console.log("포트 목록 새로고침")
+                                        updatePortList()
                                     }
                                 }
                             }
                         }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: "#2a2a2a"
-
-                    ColumnLayout {
-                        anchors.fill: parent
 
                         // 보율 선택
                         ColumnLayout {
-                            Layout.fillWidth: true
+
+                            Layout.topMargin: 20
                             spacing: 8
 
                             Text {
@@ -198,24 +192,21 @@ Rectangle {
                             }
                             ComboBox {
                                 id: baudRateComboBox
-                                Layout.fillWidth: true
+                                Layout.preferredWidth: 300
                                 Layout.preferredHeight: 40
                                 model: [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
                                 currentIndex: 0
                             }
                         }
 
-                        // 여백
-                        Item { Layout.fillHeight: true }
-
-                        
-                        // 연결 버튼
                         Button {
+                            id: connectButton
                             text: "연결"
-                            Layout.fillWidth: true
+                            Layout.preferredWidth: 300
                             Layout.preferredHeight: 40
+                            Layout.topMargin: 30
                             background: Rectangle {
-                                color: "#4CAF50"
+                                color: connectButton.hovered ? "#66BB6A" : "#4CAF50"
                                 radius: 8
                             }
                             contentItem: Text {
@@ -227,22 +218,53 @@ Rectangle {
                                 verticalAlignment: Text.AlignVCenter
                             }
 
-                             // 5. 버튼 클릭 시 Python의 connect_button_clicked 함수 호출
+                            // 버튼 클릭 시 Python의 connect_button_clicked 함수 호출
                             onClicked: {
-                                if (tableListView.currentIndex === -1) {
+                                if (portComboBox.currentIndex === -1) {
                                     console.log("포트를 선택해주세요.");
                                     return;
                                 }
-                                // backend
+
                                 // 선택된 항목의 데이터와 보율을 인자로 전달
                                 initializePortSelect.connect_button_clicked(
-                                    tableListView.model[tableListView.currentIndex].device,
-                                    tableListView.model[tableListView.currentIndex].description,
-                                    baudRateComboBox.currentValue
-                                )
+                                            portComboBox.model[portComboBox.currentIndex].device,
+                                            baudRateComboBox.currentValue
+                                            )
+                            }
+                        }
+
+                        Rectangle {
+                            id: connectResult
+                            Layout.preferredWidth: 300
+                            Layout.preferredHeight: 40
+                            Layout.topMargin: 10 // 버튼과의 간격 조정
+
+                            color: setupComponent.connectionStatusColor
+                            radius: 8
+                            
+                            Behavior on color {
+                                ColorAnimation { duration: 300 }
+                            }
+
+                            Text {
+                                text: setupComponent.connectionStatusText
+                                color: "white"
+                                font.pixelSize: 14
+                                font.weight: 700
+                                anchors.centerIn: parent
+                            }
+                        }
+                        Connections {
+                            target: initializePortSelect
+                            function onConnectionResult(success, message) {
+                                setupComponent.connectionStatusText = message
+                                setupComponent.connectionStatusColor = success ? "#2196F3" : "#F44336" // 파랑(성공), 빨강(실패)
                             }
                         }
                     }
+
+                    // 여백
+                    Item { Layout.fillHeight: true }
                 }
             }
         }
