@@ -8,6 +8,8 @@ from PySide6.QtCore import QObject, Signal, Slot
 # QML과 통신을 담당할 백엔드 클래스
 class InitializePortSelect(QObject):
     connectionResult = Signal(bool, str)  # (성공여부, 메시지)
+    # GPS 모니터링 시작을 위한 시그널 (포트, 보드레이트)
+    connectionSuccessful = Signal(str, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -55,6 +57,8 @@ class InitializePortSelect(QObject):
             
             #####연결 성공 시 QML 변화 trigger
             self.connectionResult.emit(True, f"{device} : 연결 성공")
+            # GPS 모니터링 시작 시그널 발생
+            self.connectionSuccessful.emit(device, baudrate)
             
             # 연결 성공 시 모니터링 시작
             self.start_monitoring_disconnect()

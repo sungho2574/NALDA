@@ -11,17 +11,26 @@ from .utils import resource_path
 class DockableWidget(QWidget):
     """도킹 가능한 위젯 클래스"""
 
-    def __init__(self, title: str, qml_path: str, parent=None):
+    # gcs_backend 인자를 추가
+    #       DockableWidget 내부에서
+    #       self.qml_widget.rootContext().setContextProperty("gcsBackend", gcs_backend)를
+    #       호출하여 gcsBackend 객체를 해당 QML 컨텍스트에 등록
+    def __init__(self, title: str, qml_path: str, gps_backend: QObject = None, dock_manager: QObject = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
 
         layout = QVBoxLayout(self)
-
-        # QML 위젯을 포함
         self.qml_widget = QQuickWidget()
+
+        # QML 소스를 로드하기 전에 컨텍스트 프로퍼티를 먼저 설정합니다.
+        if gps_backend:
+            self.qml_widget.rootContext().setContextProperty("gpsBackend", gps_backend)
+        if dock_manager:
+            self.qml_widget.rootContext().setContextProperty("dockManager", dock_manager)
+
         self.qml_widget.setSource(QUrl.fromLocalFile(resource_path(qml_path)))
         self.qml_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
-
+        
         layout.addWidget(self.qml_widget)
 
 
@@ -43,3 +52,9 @@ class DockManager(QObject):
             # 다른 페이지면 도크 영역 숨기기
             if self.main_window.dock_area_visible:
                 self.main_window.toggle_dock_area()
+
+    @Slot()
+    def showLocationHistory(self):
+        """메인 윈도우에 Location History 창을 띄우도록 요청"""
+        if hasattr(self.main_window, 'show_location_history'):
+            self.main_window.show_location_history()
