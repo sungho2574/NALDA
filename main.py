@@ -1,12 +1,18 @@
 import sys
+import os
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QDockWidget
-from PySide6.QtCore import QUrl, Qt
+from PySide6.QtCore import QUrl, Qt, Slot
 from PySide6.QtGui import QFontDatabase, QFont
 from PySide6.QtQuickWidgets import QQuickWidget
 
-from backend import *
 from backend.utils import resource_path
+from backend.gps_backend import GpsBackend
+from backend.dock import DockManager, DockableWidget
+from backend.initializePortSelect import InitializePortSelect
+from backend.tooltip import TooltipManager
+from windows.location_history_window import LocationHistoryWindow
+from windows.manual_gps_window import ManualGpsWindow
 
 
 class MainWindow(QMainWindow):
@@ -63,38 +69,62 @@ class MainWindow(QMainWindow):
         self.tooltip_manager = TooltipManager()
         self.dock_manager = DockManager(self)
         self.port_manager = InitializePortSelect()
+        self.gps_backend = GpsBackend()
+
+        # Port-GPS 백엔드 연결: 포트 연결 성공 시 GPS 모니터링 시작
+        self.port_manager.connectionSuccessful.connect(self.gps_backend.start_gps_monitoring)
 
         context = central_widget.rootContext()
         context.setContextProperty("tooltipManager", self.tooltip_manager)
         context.setContextProperty("dockManager", self.dock_manager)
         context.setContextProperty("initializePortSelect", self.port_manager)
+        context.setContextProperty("gpsBackend", self.gps_backend)
 
         self.setCentralWidget(central_widget)
 
+        # Location History 창을 관리하기 위한 변수
+        self.history_window = None
+
+    @Slot()
+    def show_location_history(self):
+        """Location History 창을 띄우는 슬롯"""
+        if self.history_window is None:
+            self.history_window = LocationHistoryWindow(self.gps_backend, self)
+            self.history_window.setAttribute(Qt.WA_DeleteOnClose)
+            self.history_window.destroyed.connect(self.on_history_window_destroyed)
+            self.history_window.show()
+        else:
+            self.history_window.activateWindow()
+
+    def on_history_window_destroyed(self):
+        """창이 닫힐 때 변수를 None으로 초기화"""
+        self.history_window = None
+
+    #refac: DockableWidget을 사용할때 gcs_backend같은 python 객체를 같이 넘겨줘야 python객체와 상호작용이 가능
     def setup_dock_widgets(self):
         """도크 위젯들 설정"""
         # 상단 왼쪽 도크
         self.dock_top_left = QDockWidget('카메라', self)
-        widget_top_left = DockableWidget('카메라', "src/pages/flight/Camera.qml")
+        widget_top_left = DockableWidget('카메라', "src/pages/flight/Camera.qml", self.gps_backend, self.dock_manager)
         self.dock_top_left.setWidget(widget_top_left)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_left)
 
         # 상단 오른쪽 도크
         self.dock_top_right = QDockWidget("PFD", self)
-        widget_top_right = DockableWidget("PFD", "src/pages/flight/PFD.qml")
+        widget_top_right = DockableWidget("PFD", "src/pages/flight/PFD.qml", self.gps_backend, self.dock_manager)
         self.dock_top_right.setWidget(widget_top_right)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_right)
 
         # 하단 왼쪽 도크
         self.dock_bottom_left = QDockWidget("ND", self)
-        widget_bottom_left = DockableWidget("ND", "src/pages/flight/ND.qml")
+        widget_bottom_left = DockableWidget("ND", "src/pages/flight/ND.qml", self.gps_backend, self.dock_manager) 
         self.dock_bottom_left.setWidget(widget_bottom_left)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_left)
 
         # 하단 오른쪽 도크
         self.dock_bottom_right = QDockWidget("Etc Panels", self)
         widget_bottom_right = DockableWidget(
-            "Etc Panels", "src/pages/flight/EtcPanels.qml")
+            "Etc Panels", "src/pages/flight/EtcPanels.qml", self.gps_backend, self.dock_manager)
         self.dock_bottom_right.setWidget(widget_bottom_right)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_right)
 
@@ -228,6 +258,9 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
 
+    # QML 스타일 설정 (Material)
+    os.environ['QT_QUICK_CONTROLS_STYLE'] = 'Material'
+
     # 폰트 설정
     font_path = resource_path("src/assets/fonts/PretendardVariable.ttf")
     font_id = QFontDatabase.addApplicationFont(font_path)
@@ -241,6 +274,10 @@ def main():
     # 메인 윈도우 생성 및 표시
     window = MainWindow()
     window.show()
+
+    # 수동 GPS 입력 윈도우 생성 및 표시
+    manual_gps_window = ManualGpsWindow(window.gps_backend)
+    manual_gps_window.show()
 
     sys.exit(app.exec())
 
