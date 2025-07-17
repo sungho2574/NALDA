@@ -1,12 +1,12 @@
 import math
-from PySide6.QtCore import QObject, Signal, QTimer
-from PySide6.QtQml import QmlElement
+from PySide6.QtCore import QObject, Signal, QTimer, Slot
+# from PySide6.QtQml import QmlElement
 
-QML_IMPORT_NAME = "PFDController"
-QML_IMPORT_MAJOR_VERSION = 1
+# QML_IMPORT_NAME = "PFDController"
+# QML_IMPORT_MAJOR_VERSION = 1
 
 
-@QmlElement
+# @QmlElement
 class PFDController(QObject):
     """
     PFD (Primary Flight Display) 데이터를 처리하고 QML과 통신하는 컨트롤러
@@ -17,6 +17,7 @@ class PFDController(QObject):
     rollAngleChanged = Signal(float)
     altitudeChanged = Signal(float)
     airspeedChanged = Signal(float)
+    headingChanged = Signal(float)
 
     def __init__(self):
         super().__init__()
@@ -26,6 +27,7 @@ class PFDController(QObject):
         self._roll_angle = 0.0       # 롤 각도 (도)
         self._altitude = 0.0         # 고도 (미터)
         self._airspeed = 0.0         # 대기속도 (노트)
+        self._heading = 0.0          # 방위각 (도)
 
         # 시뮬레이션 타이머
         self._simulation_timer = QTimer()
@@ -76,6 +78,16 @@ class PFDController(QObject):
             self._airspeed = value
             self.airspeedChanged.emit(value)
 
+    @property
+    def heading(self):
+        return self._heading
+
+    @heading.setter
+    def heading(self, value):
+        if self._heading != value:
+            self._heading = value
+            self.headingChanged.emit(value)
+
     def start_simulation(self):
         """시뮬레이션 시작"""
         self._simulation_active = True
@@ -93,14 +105,17 @@ class PFDController(QObject):
         self.roll_angle = 0.0
         self.altitude = 0.0
         self.airspeed = 0.0
+        self.heading = 0.0
         print("PFD 디스플레이 초기화")
 
-    def update_flight_data(self, pitch, roll, altitude, airspeed):
+    def update_flight_data(self, pitch, roll, altitude, airspeed, heading=None):
         """실제 비행 데이터 업데이트"""
         self.pitch_angle = pitch
         self.roll_angle = roll
         self.altitude = altitude
         self.airspeed = airspeed
+        if heading is not None:
+            self.heading = heading
 
     def _update_simulation(self):
         """시뮬레이션 데이터 업데이트"""
@@ -122,26 +137,39 @@ class PFDController(QObject):
         # 대기속도: 기본 속도 + 약간의 변동
         airspeed = 80 + 10 * math.sin(self._simulation_time * 0.4)
 
+        # 방위각: 0~360도 범위에서 점진적 변화
+        heading = (self._simulation_time * 5) % 360
+
         # 데이터 업데이트
-        self.update_flight_data(pitch, roll, altitude, airspeed)
+        self.update_flight_data(pitch, roll, altitude, airspeed, heading)
 
     # QML에서 호출할 수 있는 메서드들
+    @Slot(float)
     def setPitchAngle(self, angle):
         """피치 각도 설정 (QML에서 호출)"""
         self.pitch_angle = float(angle)
 
+    @Slot(float)
     def setRollAngle(self, angle):
         """롤 각도 설정 (QML에서 호출)"""
         self.roll_angle = float(angle)
 
+    @Slot(float)
     def setAltitude(self, altitude):
         """고도 설정 (QML에서 호출)"""
         self.altitude = float(altitude)
 
+    @Slot(float)
     def setAirspeed(self, airspeed):
         """대기속도 설정 (QML에서 호출)"""
         self.airspeed = float(airspeed)
 
+    @Slot(float)
+    def setHeading(self, heading):
+        """방위각 설정 (QML에서 호출)"""
+        self.heading = float(heading)
+
+    @Slot()
     def toggleSimulation(self):
         """시뮬레이션 토글 (QML에서 호출)"""
         if self._simulation_active:
@@ -149,6 +177,7 @@ class PFDController(QObject):
         else:
             self.start_simulation()
 
+    @Slot()
     def resetDisplay(self):
         """디스플레이 리셋 (QML에서 호출)"""
         self.reset_display()
