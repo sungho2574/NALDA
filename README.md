@@ -20,6 +20,7 @@ NALDA/
 │   ├── themes/             # 색상 등 테마 관리
 │   ├── main.qml            # QML 진입점
 │   └── styles.qss          # 전역 QML 스타일링
+├── windows/                # 팝업 윈도우 구동 python코드
 ├── main.py                 # 앱 진입점
 └── requirements.txt        # 파이썬 의존성 패키지 목록
 ```
