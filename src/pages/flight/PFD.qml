@@ -27,6 +27,10 @@ Rectangle {
         function onAirspeedChanged(airspeed) {
             pfdRoot.airspeed = airspeed
         }
+        
+        function onHeadingChanged(heading) {
+            pfdRoot.heading = heading
+        }
     }
     
     // PFD 크기와 위치를 위한 속성
@@ -62,11 +66,6 @@ Rectangle {
             height: parent.height / 2
             color: "#87CEEB"  // 하늘색
             anchors.top: parent.top
-            transform: Rotation {
-                origin.x: sky.width / 2
-                origin.y: sky.height
-                angle: pfdRoot.rollAngle
-            }
         }
         
         // 갈색 부분 (아래쪽)
@@ -76,11 +75,6 @@ Rectangle {
             height: parent.height / 2
             color: "#8B4513"  // 갈색
             anchors.bottom: parent.bottom
-            transform: Rotation {
-                origin.x: ground.width / 2
-                origin.y: 0
-                angle: pfdRoot.rollAngle
-            }
         }
         
         // 피치 가이드라인
@@ -497,4 +491,15 @@ Rectangle {
         }
     }
     
+    // 시뮬레이션 토글 버튼 (우측 상단)
+    Button {
+        id: simToggleBtn
+        text: "시뮬레이션 시작/정지"
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: 16
+        anchors.rightMargin: 16
+        z: 200
+        onClicked: pfdController.toggleSimulation()
+    }
 }

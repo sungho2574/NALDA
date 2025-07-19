@@ -172,6 +172,14 @@ class MainWindow(QMainWindow):
 
         view_menu.addSeparator()
 
+        # 파일 메뉴
+        file_menu = menubar.addMenu('파일')
+
+        # 종료 액션
+        exit_action = file_menu.addAction('종료 (ESC)')
+        exit_action.setShortcut('ESC')
+        exit_action.triggered.connect(self.close)
+
     def toggle_dock_area(self):
         """도크 영역 토글"""
         self.dock_area_visible = not self.dock_area_visible
