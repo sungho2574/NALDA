@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import QUrl, QObject, Slot
 from PySide6.QtQuickWidgets import QQuickWidget
 
+from .pfd_controller import PFDController
+
 from .utils import resource_path
 
 
@@ -32,7 +34,12 @@ class DockableWidget(QWidget):
 
         self.qml_widget.setSource(QUrl.fromLocalFile(resource_path(qml_path)))
         self.qml_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
-        
+
+        context = self.qml_widget.rootContext()
+        self.pfd_controller = PFDController()
+        context.setContextProperty(
+            "pfdController", self.pfd_controller)
+
         layout.addWidget(self.qml_widget)
 
 
@@ -54,6 +61,12 @@ class DockManager(QObject):
             # 다른 페이지면 도크 영역 숨기기
             if self.main_window.dock_area_visible:
                 self.main_window.toggle_dock_area()
+
+    @Slot()
+    def showLocationHistory(self):
+        """메인 윈도우에 Location History 창을 띄우도록 요청"""
+        if hasattr(self.main_window, 'show_location_history'):
+            self.main_window.show_location_history()
 
     @Slot()
     def showLocationHistory(self):
