@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import QtLocation 5.15
 import QtPositioning 5.15
+import QtQuick.Dialogs
 
 Rectangle {
     id: initPage
@@ -12,6 +13,56 @@ Rectangle {
     Layout.margins: 20
 
     property var waypoints: []
+    // 알고리즘 목록 (사용자가 동적으로 추가/삭제 가능)
+    property var algorithmOptions: ["spline", "cubic"]
+    property string currentAlgorithm: ""
+    
+    // 알고리즘 목록 모델
+    property ListModel algorithmListModel: ListModel {
+        id: algorithmListModel
+        Component.onCompleted: {
+            // 기본 알고리즘들을 모델에 추가
+            for (var i = 0; i < algorithmOptions.length; i++) {
+                append({"name": algorithmOptions[i]});
+            }
+        }
+    }
+
+    // 선택된 알고리즘의 경로 파일(.txt)을 읽어 웨이포인트로 변환
+    function loadPathFromFile(algo) {
+        // NOTE: 파일 위치는 프로젝트 구조에 맞게 조정하세요.
+        // 현재는 QML 파일과 같은 디렉토리에 <algo>.txt 가 존재한다고 가정합니다.
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", Qt.resolvedUrl(algo + ".txt"));
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 0 || xhr.status === 200) {
+                    var lines = xhr.responseText.trim().split(/\r?\n/);
+                    // 기존 웨이포인트 초기화
+                    waypoints = [];
+                    waypointListModel.clear();
+
+                    for (var i = 0; i < lines.length; i++) {
+                        var parts = lines[i].trim().split(/[ ,]+/);
+                        if (parts.length >= 3) {
+                            var wp = {
+                                name: algo + "_" + (i + 1),
+                                latitude: parseFloat(parts[0]),
+                                longitude: parseFloat(parts[1]),
+                                altitude: parseFloat(parts[2])
+                            };
+                            waypoints.push(wp);
+                            waypointListModel.append(wp);
+                        }
+                    }
+                    console.log("Loaded", waypoints.length, "waypoints from", algo, "file");
+                } else {
+                    console.log("Failed to load path file for", algo, "status", xhr.status);
+                }
+            }
+        }
+        xhr.send();
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -371,6 +422,7 @@ Rectangle {
                 }
             }
             
+            
             // 액션 
             RowLayout {
                 Layout.fillWidth: true
@@ -426,6 +478,7 @@ Rectangle {
                     }
                 }
                 */
+
             }
             }
             
@@ -433,6 +486,7 @@ Rectangle {
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: parent.width * 0.5
+                spacing: 20
                 
                 // Map section
                 Rectangle {
@@ -449,7 +503,7 @@ Rectangle {
                         spacing: 15
                     
                     Text {
-                        text: "웨이포인트 지도"
+                        text: "웨이포인트 / 미션경로 지도"
                         color: "white"
                         font.pixelSize: 18
                         font.bold: true
@@ -677,8 +731,138 @@ text: model.name.substring(0, 3)
                     }
                 }
             }
+            
+            // 미션 경로 알고리즘
+            Rectangle {
+                Layout.fillWidth: true
+Layout.preferredHeight: 300
+                color: "#3a3a3a"
+                radius: 10
+                border.color: "#555555"
+                border.width: 1
+                
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 15
+                    
+                    Text {
+                        text: "미션 경로 알고리즘"
+                        color: "white"
+                        font.pixelSize: 18
+                        font.bold: true
+                    }
+                    
+                    ListView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        model: algorithmListModel
+                        delegate: Rectangle {
+                            width: ListView.view.width
+                            height: 50
+                            color: "#4a4a4a"
+                            radius: 5
+                            border.color: "#666666"
+                            border.width: 1
+                            
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                spacing: 15
+                                
+                                Text {
+                                    text: model.name
+                                    color: "white"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                    Layout.fillWidth: true
+                                }
+                                
+                                Button {
+                                    text: "적용"
+                                    Layout.preferredWidth: 60
+                                    Layout.preferredHeight: 30
+                                    
+                                    background: Rectangle {
+                                        color: currentAlgorithm === model.name ? "#9E9E9E" : (parent.pressed ? "#388E3C" : "#4CAF50")
+                                        radius: 4
+                                    }
+                                    
+                                    contentItem: Text {
+                                        text: parent.text
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        font.pixelSize: 14
+                                    }
+                                    
+                                    onClicked: {
+                                        loadPathFromFile(model.name);
+                                        currentAlgorithm = model.name;
+                                    }
+                                }
+                                
+                                Button {
+                                    text: "삭제"
+                                    Layout.preferredWidth: 60
+                                    Layout.preferredHeight: 30
+                                    
+                                    background: Rectangle {
+                                        color: parent.pressed ? "#d32f2f" : "#f44336"
+                                        radius: 4
+                                    }
+                                    
+                                    contentItem: Text {
+                                        text: parent.text
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        font.pixelSize: 14
+                                    }
+                                    
+                                    onClicked: {
+                                        algorithmListModel.remove(index);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+Button {
+                        text: "미션 경로 알고리즘 추가"
+                        Layout.preferredWidth: 200
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.topMargin: 10
+                        background: Rectangle {
+                            color: parent.pressed ? "#388E3C" : "#4CAF50"
+                            radius: 6
+                        }
+                        contentItem: Text {
+                            text: parent.text
+                            color: "white"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.pixelSize: 14
+                        }
+                        onClicked: {
+                            var component = Qt.createComponent("AlgorithmInputPanel.qml");
+                            var window = component.createObject(null);
+                            if (window !== null) {
+                                window.onAccepted.connect(function(algorithmName, fileUrl) {
+                                    algorithmListModel.append({"name": algorithmName});
+                                    console.log("알고리즘 입력 완료 - 이름:", algorithmName, "파일:", fileUrl);
+                                });
+                                window.show();
+                            } else {
+                                console.log("윈도우 생성 실패:", component.errorString());
+                            }
+                        }
+                    }
+                }
+            }
             }
             }
         }
     }
+
 }
