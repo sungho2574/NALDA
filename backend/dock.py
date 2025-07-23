@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import QUrl, QObject, Slot
 from PySide6.QtQuickWidgets import QQuickWidget
 
+from .pfd_controller import PFDController
+
 from .utils import resource_path
 
 
@@ -32,7 +34,12 @@ class DockableWidget(QWidget):
 
         self.qml_widget.setSource(QUrl.fromLocalFile(resource_path(qml_path)))
         self.qml_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
-        
+
+        context = self.qml_widget.rootContext()
+        self.pfd_controller = PFDController()
+        context.setContextProperty(
+            "pfdController", self.pfd_controller)
+
         layout.addWidget(self.qml_widget)
 
 
