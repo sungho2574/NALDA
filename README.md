@@ -49,8 +49,14 @@ python venv -p 3.12.11
 pip install -r requirements.txt
 ```
 
-### 실행
+### 실행 
 
 ```bash
 python main.py
+```
+
+또는 (현재는 하기 방법)
+
+```bash
+QML_XHR_ALLOW_FILE_READ=1 python3 main.py
 ```
