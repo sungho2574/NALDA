@@ -14,11 +14,11 @@ Rectangle {
 
     property var menuItems: [
         { id: 1, name: "보드 연결", page: "SETUP" },
-        { id: 2, name: "다음 메뉴", page: "MENU" },
-        { id: 3, name: "다음 메뉴", page: "MENU" },
-        { id: 4, name: "다음 메뉴", page: "MENU" },
-        { id: 5, name: "다음 메뉴", page: "MENU" },
-        { id: 6, name: "다음 메뉴", page: "MENU" }
+        // { id: 2, name: "다음 메뉴", page: "MENU" },
+        // { id: 3, name: "다음 메뉴", page: "MENU" },
+        // { id: 4, name: "다음 메뉴", page: "MENU" },
+        // { id: 5, name: "다음 메뉴", page: "MENU" },
+        // { id: 6, name: "다음 메뉴", page: "MENU" }
     ]
     property int selectedPageId: 1
 
