@@ -14,8 +14,14 @@ Rectangle {
 
     property var waypoints: []
     // 알고리즘 목록 (사용자가 동적으로 추가/삭제 가능)
-    property var algorithmOptions: ["spline", "cubic"]
+    property var algorithmOptions: []
     property string currentAlgorithm: ""
+    
+    // 알고리즘별 파일 데이터 저장소
+    property var algorithmData: ({})
+    
+    // 현재 표시되는 경로 점들 (적용 버튼으로 선택되는 알고리즘의 경로)
+    property var currentPathPoints: []
     
     // 알고리즘 목록 모델
     property ListModel algorithmListModel: ListModel {
@@ -28,40 +34,249 @@ Rectangle {
         }
     }
 
-    // 선택된 알고리즘의 경로 파일(.txt)을 읽어 웨이포인트로 변환
+    // 선택된 알고리즘의 저장된 데이터를 사용하여 경로 점들을 지도에 표시
     function loadPathFromFile(algo) {
-        // NOTE: 파일 위치는 프로젝트 구조에 맞게 조정하세요.
-        // 현재는 QML 파일과 같은 디렉토리에 <algo>.txt 가 존재한다고 가정합니다.
+        console.log("Loading path from stored data for algorithm:", algo);
+        
+        // 저장된 알고리즘 데이터 확인
+        if (algorithmData[algo] && algorithmData[algo].waypoints) {
+            console.log("Found stored data for", algo, "with", algorithmData[algo].waypoints.length, "path points");
+            
+            // 경로 점들을 currentPathPoints에 저장 (웨이포인트 목록에 추가하지 않음)
+            currentPathPoints = [];
+            var storedWaypoints = algorithmData[algo].waypoints;
+            for (var i = 0; i < storedWaypoints.length; i++) {
+                var pathPoint = {
+                    name: storedWaypoints[i].name,
+                    latitude: storedWaypoints[i].latitude,
+                    longitude: storedWaypoints[i].longitude,
+                    altitude: storedWaypoints[i].altitude
+                };
+                currentPathPoints.push(pathPoint);
+            }
+            
+            console.log("Successfully loaded", currentPathPoints.length, "path points from stored", algo, "data");
+            console.log("Path points will be displayed on map as separate markers");
+            console.log("First path point:", currentPathPoints[0]);
+            console.log("Last path point:", currentPathPoints[currentPathPoints.length - 1]);
+            
+            // 지도 업데이트를 위해 신호 발생
+            pathPointsChanged();
+        } else {
+            console.log("No stored data found for algorithm:", algo);
+            console.log("Available algorithms:", Object.keys(algorithmData));
+            
+            // 경로 점 초기화
+            currentPathPoints = [];
+            pathPointsChanged();
+            
+            // 폴백: 기존 방식으로 .txt 파일 읽기 시도
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", Qt.resolvedUrl(algo + ".txt"));
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 0 || xhr.status === 200) {
+                        var lines = xhr.responseText.trim().split(/\r?\n/);
+                        currentPathPoints = [];
+
+                        for (var i = 0; i < lines.length; i++) {
+                            var parts = lines[i].trim().split(/[ ,]+/);
+                            if (parts.length >= 3) {
+                                var pathPoint = {
+                                    name: algo + "_" + (i + 1),
+                                    latitude: parseFloat(parts[0]),
+                                    longitude: parseFloat(parts[1]),
+                                    altitude: parseFloat(parts[2])
+                                };
+                                currentPathPoints.push(pathPoint);
+                            }
+                        }
+                        console.log("Fallback: Loaded", currentPathPoints.length, "path points from", algo, "file");
+                        pathPointsChanged();
+                    } else {
+                        console.log("Failed to load path file for", algo, "status", xhr.status);
+                    }
+                }
+            }
+            xhr.send();
+        }
+    }
+    
+    // 경로 점 업데이트 신호
+    signal pathPointsChanged()
+    
+    // 업로드된 파일에서 직접 좌표를 파싱하여 경로 점으로 변환 (웨이포인트 목록에는 추가하지 않음)
+    function parseCoordinatesFromText(text, algorithmName) {
+        console.log("Parsing coordinates from uploaded file:", algorithmName);
+        
+        var pathPoints = [];  // 경로 점들만 저장
+        var lines = text.trim().split(/\r?\n/);
+        var coordinateCount = 0;
+        
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            
+            // 빈 줄이나 주석 건너뛰기
+            if (line === "" || line.startsWith("//") || line.startsWith("#") || line.startsWith("=")) {
+                continue;
+            }
+            
+            // 좌표 패턴 찾기: 위도, 경도 형태
+            var coordinateMatch = line.match(/(\d+\.\d+)[,\s]+(\d+\.\d+)/);
+            if (coordinateMatch) {
+                var latitude = parseFloat(coordinateMatch[1]);
+                var longitude = parseFloat(coordinateMatch[2]);
+                
+                // 유효한 GPS 좌표인지 확인
+                if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
+                    coordinateCount++;
+                    var pathPoint = {
+                        name: algorithmName + "_" + coordinateCount,
+                        latitude: latitude,
+                        longitude: longitude,
+                        altitude: 10.0  // 기본 고도
+                    };
+                    pathPoints.push(pathPoint);
+                }
+            }
+            // 이미 변환된 형태: 위도 경도 고도
+            else {
+                var parts = line.split(/[\s,]+/);
+                if (parts.length >= 2) {
+                    var lat = parseFloat(parts[0]);
+                    var lon = parseFloat(parts[1]);
+                    var alt = parts.length >= 3 ? parseFloat(parts[2]) : 10.0;
+                    
+                    if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                        coordinateCount++;
+                        var pathPoint = {
+                            name: algorithmName + "_" + coordinateCount,
+                            latitude: lat,
+                            longitude: lon,
+                            altitude: alt
+                        };
+                        pathPoints.push(pathPoint);
+                    }
+                }
+            }
+        }
+        
+        console.log("Parsed", coordinateCount, "coordinates from", algorithmName);
+        return pathPoints;  // 경로 점들 반환
+    }
+    
+    // 업로드된 파일을 읽고 좌표를 파싱하는 함수
+    function loadAndParseUploadedFile(algorithmName, fileUrl) {
+        console.log("Loading uploaded file:", algorithmName, fileUrl);
+        
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", Qt.resolvedUrl(algo + ".txt"));
+        xhr.open("GET", fileUrl);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 0 || xhr.status === 200) {
-                    var lines = xhr.responseText.trim().split(/\r?\n/);
-                    // 기존 웨이포인트 초기화
-                    waypoints = [];
-                    waypointListModel.clear();
-
-                    for (var i = 0; i < lines.length; i++) {
-                        var parts = lines[i].trim().split(/[ ,]+/);
-                        if (parts.length >= 3) {
-                            var wp = {
-                                name: algo + "_" + (i + 1),
-                                latitude: parseFloat(parts[0]),
-                                longitude: parseFloat(parts[1]),
-                                altitude: parseFloat(parts[2])
-                            };
-                            waypoints.push(wp);
-                            waypointListModel.append(wp);
-                        }
+                    // 알고리즘 데이터 저장
+                    algorithmData[algorithmName] = {
+                        fileUrl: fileUrl,
+                        rawData: xhr.responseText,
+                        waypoints: []
+                    };
+                    
+                    var pathPoints = parseCoordinatesFromText(xhr.responseText, algorithmName);
+                    if (pathPoints && pathPoints.length > 0) {
+                        // 파싱된 경로 점들을 알고리즘 데이터에 저장
+                        algorithmData[algorithmName].waypoints = pathPoints.slice(); // 복사본 저장
+                        console.log("Successfully loaded and parsed", algorithmName, "- Total waypoints:", pathPoints.length);
+                        console.log("Stored waypoints for", algorithmName, ":", algorithmData[algorithmName].waypoints.length);
+                    } else {
+                        console.log("Failed to parse coordinates from", algorithmName);
                     }
-                    console.log("Loaded", waypoints.length, "waypoints from", algo, "file");
                 } else {
-                    console.log("Failed to load path file for", algo, "status", xhr.status);
+                    console.log("Failed to load uploaded file", algorithmName, "status:", xhr.status);
                 }
             }
         }
         xhr.send();
+    }
+    
+    // 웨이포인트 파일을 파싱하여 웨이포인트 목록에 추가하는 함수
+    function loadWaypointsFromFile(fileUrl) {
+        console.log("Loading waypoints from file:", fileUrl);
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", fileUrl);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 0 || xhr.status === 200) {
+                    var lines = xhr.responseText.trim().split(/\r?\n/);
+                    var addedCount = 0;
+                    
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim();
+                        
+                        // 빈 줄이나 주석 건너뛰기
+                        if (line === "" || line.startsWith("//") || line.startsWith("#") || line.startsWith("=")) {
+                            continue;
+                        }
+                        
+                        // 좌표 패턴 찾기: 위도, 경도 형태
+                        var coordinateMatch = line.match(/(\d+\.\d+)[,\s]+(\d+\.\d+)/);
+                        if (coordinateMatch) {
+                            var latitude = parseFloat(coordinateMatch[1]);
+                            var longitude = parseFloat(coordinateMatch[2]);
+                            
+                            // 유효한 GPS 좌표인지 확인
+                            if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
+                                addedCount++;
+                                var waypoint = {
+                                    name: "W" + addedCount,
+                                    latitude: latitude,
+                                    longitude: longitude,
+                                    altitude: 10.0  // 기본 고도
+                                };
+                                waypoints.push(waypoint);
+                                waypointListModel.append(waypoint);
+                            }
+                        }
+                        // 이미 변환된 형태: 위도 경도 고도
+                        else {
+                            var parts = line.split(/[\s,]+/);
+                            if (parts.length >= 2) {
+                                var lat = parseFloat(parts[0]);
+                                var lon = parseFloat(parts[1]);
+                                var alt = parts.length >= 3 ? parseFloat(parts[2]) : 10.0;
+                                
+                                if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                                    addedCount++;
+                                    var waypoint = {
+                                        name: "W" + addedCount,
+                                        latitude: lat,
+                                        longitude: lon,
+                                        altitude: alt
+                                    };
+                                    waypoints.push(waypoint);
+                                    waypointListModel.append(waypoint);
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log("Successfully loaded", addedCount, "waypoints from file");
+                } else {
+                    console.log("Failed to load waypoint file, status:", xhr.status);
+                }
+            }
+        }
+        xhr.send();
+    }
+    
+    // 웨이포인트 파일 선택 다이얼로그
+    FileDialog {
+        id: waypointFileDialog
+        title: "웨이포인트 파일 선택"
+        nameFilters: ["Text files (*.txt)", "CSV files (*.csv)", "All files (*)"]
+        onAccepted: {
+            loadWaypointsFromFile(selectedFile);
+        }
     }
 
     ScrollView {
@@ -86,11 +301,11 @@ Rectangle {
                 
                 // Header
                 Text {
-                    text: "GPS waypoint 입력 및 천이 옵션 지정"
+                    text: "GPS Waypoint 입력 및 Mission Planning"
                     color: "white"
                     font.pixelSize: 24
                     font.bold: true
-                    Layout.alignment: Qt.AlignHCenter
+                    Layout.alignment: Qt.AlignLeft
                     Layout.bottomMargin: 20
                 }
             
@@ -260,48 +475,75 @@ Rectangle {
                         }
                     }
                     
-                    // Add waypoint button
-                    Button {
-                        text: "웨이포인트 추가"
+                    // Add waypoint buttons
+                    RowLayout {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 10
+                        spacing: 15
                         
-                        background: Rectangle {
-                            color: parent.pressed ? "#4CAF50" : "#5CBF60"
-                            radius: 6
+                        Button {
+                            text: "웨이포인트 추가"
+                            Layout.preferredWidth: 140
+                            
+                            background: Rectangle {
+                                color: parent.pressed ? "#4CAF50" : "#5CBF60"
+                                radius: 6
+                            }
+                            
+                            contentItem: Text {
+                                text: parent.text
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 14
+                            }
+                            
+                            onClicked: {
+                                if (waypointNameField.text.trim() !== "" && 
+                                    latitudeField.text.trim() !== "" && 
+                                    longitudeField.text.trim() !== "") {
+                                    
+                                    var waypoint = {
+                                        name: waypointNameField.text.trim(),
+                                        latitude: parseFloat(latitudeField.text),
+                                        longitude: parseFloat(longitudeField.text),
+                                        altitude: altitudeField.text.trim() !== "" ? parseFloat(altitudeField.text) : 0
+                                    };
+                                    
+                                    waypoints.push(waypoint);
+                                    waypointListModel.append(waypoint);
+                                    
+                                    waypointNameField.text = "";
+                                    latitudeField.text = "";
+                                    longitudeField.text = "";
+                                    altitudeField.text = "";
+                                    
+                                    console.log("Added waypoint:", waypoint.name, waypoint.latitude, waypoint.longitude, waypoint.altitude);
+                                } else {
+                                    console.log("Please fill in all required fields (name, latitude, longitude)");
+                                }
+                            }
                         }
                         
-                        contentItem: Text {
-                            text: parent.text
-                            color: "white"
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            font.pixelSize: 14
-                        }
-                        
-                        onClicked: {
-                            if (waypointNameField.text.trim() !== "" && 
-                                latitudeField.text.trim() !== "" && 
-                                longitudeField.text.trim() !== "") {
-                                
-                                var waypoint = {
-                                    name: waypointNameField.text.trim(),
-                                    latitude: parseFloat(latitudeField.text),
-                                    longitude: parseFloat(longitudeField.text),
-                                    altitude: altitudeField.text.trim() !== "" ? parseFloat(altitudeField.text) : 0
-                                };
-                                
-                                waypoints.push(waypoint);
-                                waypointListModel.append(waypoint);
-                                
-                                waypointNameField.text = "";
-                                latitudeField.text = "";
-                                longitudeField.text = "";
-                                altitudeField.text = "";
-                                
-                                console.log("Added waypoint:", waypoint.name, waypoint.latitude, waypoint.longitude, waypoint.altitude);
-                            } else {
-                                console.log("Please fill in all required fields (name, latitude, longitude)");
+                        Button {
+                            text: "파일로 Waypoint 목록 추가"
+                            Layout.preferredWidth: 200
+                            
+                            background: Rectangle {
+                                color: parent.pressed ? "#FF9800" : "#FFA726"
+                                radius: 6
+                            }
+                            
+                            contentItem: Text {
+                                text: parent.text
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 14
+                            }
+                            
+                            onClicked: {
+                                waypointFileDialog.open();
                             }
                         }
                     }
@@ -488,10 +730,20 @@ Rectangle {
                 Layout.preferredWidth: parent.width * 0.5
                 spacing: 20
                 
+                // Header (첫 번째 ColumnLayout과 시작 위치 맞추기 위해 임의로 추가함)
+                Text {
+                    text: ""
+                    color: "white"
+                    font.pixelSize: 24
+                    font.bold: true
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.bottomMargin: 20
+                }
+                
                 // Map section
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 450
+                    Layout.preferredHeight: 475
                     color: "#3a3a3a"
                     radius: 10
                     border.color: "#555555"
@@ -586,7 +838,7 @@ Rectangle {
                                 }
                             }
                             
-                            // 웨이포인트 마커들
+// 웨이포인트 마커들
                             MapItemView {
                                 model: waypointListModel
                                 delegate: MapQuickItem {
@@ -618,6 +870,72 @@ text: model.name.substring(0, 3)
                                             color: "white"
                                             font.bold: true
                                             font.pixelSize: 16
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // 현재 경로 점들을 연결하는 경로선
+                            MapPolyline {
+                                id: currentWaypointPath
+                                line.color: "#FF9800" // 경로선 색상
+                                line.width: 3
+                                
+                                // 경로 점들이 변경될 때마다 업데이트
+                                Connections {
+                                    target: initPage
+                                    function onPathPointsChanged() {
+                                        var pathCoordinates = [];
+                                        console.log("Updating path with", currentPathPoints.length, "points");
+                                        for (var i = 0; i < currentPathPoints.length; i++) {
+                                            pathCoordinates.push(QtPositioning.coordinate(currentPathPoints[i].latitude, currentPathPoints[i].longitude));
+                                        }
+                                        currentWaypointPath.path = pathCoordinates;
+                                    }
+                                }
+                                
+                                Component.onCompleted: {
+                                    // 초기 경로 설정
+                                    var pathCoordinates = [];
+                                    for (var i = 0; i < currentPathPoints.length; i++) {
+                                        pathCoordinates.push(QtPositioning.coordinate(currentPathPoints[i].latitude, currentPathPoints[i].longitude));
+                                    }
+                                    currentWaypointPath.path = pathCoordinates;
+                                }
+                            }
+                            
+                            // 경로 점 마커들
+                            MapItemView {
+                                model: currentPathPoints
+                                delegate: MapQuickItem {
+                                    coordinate: QtPositioning.coordinate(model.latitude, model.longitude)
+                                    anchorPoint.x: 12
+                                    anchorPoint.y: 12
+                                    
+                                    sourceItem: Rectangle {
+                                        width: 24
+                                        height: 24
+                                        radius: 12
+                                        color: "#2196F3" // 파란색 배경
+                                        border.color: "white"
+                                        border.width: 2
+                                        
+                                        // 그림자 효과
+                                        Rectangle {
+                                            anchors.centerIn: parent
+                                            width: parent.width + 4
+                                            height: parent.height + 4
+                                            radius: (parent.width + 4) / 2
+                                            color: "#00000040" // 반투명 검정
+                                            z: -1
+                                        }
+                                        
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: model.name.substring(0, 3)
+                                            color: "white"
+                                            font.bold: true
+                                            font.pixelSize: 12
                                         }
                                     }
                                 }
@@ -849,8 +1167,13 @@ Button {
                             var window = component.createObject(null);
                             if (window !== null) {
                                 window.onAccepted.connect(function(algorithmName, fileUrl) {
+                                    // 알고리즘 목록에 추가
                                     algorithmListModel.append({"name": algorithmName});
-                                    console.log("알고리즘 입력 완료 - 이름:", algorithmName, "파일:", fileUrl);
+                                    
+                                    // 파일 읽기 및 좌표 파싱
+                                    loadAndParseUploadedFile(algorithmName, fileUrl);
+                                    
+                                    console.log("알고리즘 추가 완료 - 이름:", algorithmName, "파일:", fileUrl);
                                 });
                                 window.show();
                             } else {
