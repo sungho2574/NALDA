@@ -100,6 +100,36 @@ class MainWindow(QMainWindow):
         """창이 닫힐 때 변수를 None으로 초기화"""
         self.history_window = None
 
+    @Slot()
+    def show_algorithm_input_panel(self):
+        """Algorithm Input Panel 창을 띄우는 슬롯"""
+        if self.algorithm_input_window is None:
+            self.algorithm_input_window = AlgorithmInputWindow(self.gps_backend, self)
+            self.algorithm_input_window.setAttribute(Qt.WA_DeleteOnClose)
+            self.algorithm_input_window.destroyed.connect(self.on_algorithm_input_window_destroyed)
+            self.algorithm_input_window.show()
+        else:
+            self.algorithm_input_window.activateWindow()
+
+    def on_algorithm_input_window_destroyed(self):
+        """알고리듬 입력 창이 닫힐 때 변수를 None으로 초기화"""
+        self.algorithm_input_window = None
+
+    @Slot()
+    def show_index_page(self):
+        """Index Page 창을 띄우는 슬롯"""
+        if self.index_page_window is None:
+            self.index_page_window = IndexPageWindow(self.gps_backend, self)
+            self.index_page_window.setAttribute(Qt.WA_DeleteOnClose)
+            self.index_page_window.destroyed.connect(self.on_index_page_window_destroyed)
+            self.index_page_window.show()
+        else:
+            self.index_page_window.activateWindow()
+
+    def on_index_page_window_destroyed(self):
+        """Index Page 창이 닫힐 때 변수를 None으로 초기화"""
+        self.index_page_window = None
+
     #refac: DockableWidget을 사용할때 gcs_backend같은 python 객체를 같이 넘겨줘야 python객체와 상호작용이 가능
     def setup_dock_widgets(self):
         """도크 위젯들 설정"""
