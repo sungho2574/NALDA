@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Dialogs
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import Qt.labs.platform 1.1 as Platform
 
 ApplicationWindow {
     id: algorithmInputPanel
@@ -10,6 +11,8 @@ ApplicationWindow {
     height: 500
     visible: true
     color: "#2a2a2a"
+    
+    property url selectedFileUrl: ""
     
     signal accepted(string algorithmName, url fileUrl)
     signal cancelled()
@@ -79,16 +82,41 @@ ApplicationWindow {
                         font.pixelSize: 12
                     }
                     
-                    onClicked: fileDialog.open()
+                    onClicked: {
+                        console.log("File selection button clicked")
+                        // Try platform file dialog first, fallback to regular FileDialog
+                        if (platformFileDialog.available) {
+                            console.log("Using platform file dialog")
+                            platformFileDialog.open()
+                        } else {
+                            console.log("Using regular file dialog")
+                            fileDialog.open()
+                        }
+                    }
                 }
                 
-                Text {
-                    id: fileUrlText
+                Column {
                     Layout.fillWidth: true
-                    text: "파일이 선택되지 않았습니다"
-                    color: "#cccccc"
-                    font.pixelSize: 12
-                    elide: Text.ElideMiddle
+                    spacing: 5
+                    
+                    Text {
+                        id: fileUrlText
+                        width: parent.width
+                        text: "파일이 선택되지 않았습니다"
+                        color: "#cccccc"
+                        font.pixelSize: 12
+                        elide: Text.ElideMiddle
+                    }
+                    
+                    Text {
+                        id: fullPathText
+                        width: parent.width
+                        text: ""
+                        color: "#999999"
+                        font.pixelSize: 10
+                        elide: Text.ElideMiddle
+                        visible: text !== ""
+                    }
                 }
             }
         }
@@ -140,10 +168,26 @@ ApplicationWindow {
                 }
                 
                 onClicked: {
-                    if (newAlgorithmName.text.trim() !== "" && fileDialog.fileUrl !== "") {
-                        accepted(newAlgorithmName.text.trim(), fileDialog.fileUrl)
+                    console.log("Add button clicked")
+                    console.log("Algorithm name:", newAlgorithmName.text.trim())
+                    console.log("Selected File URL:", algorithmInputPanel.selectedFileUrl)
+                    console.log("Selected File URL type:", typeof algorithmInputPanel.selectedFileUrl)
+                    console.log("Selected File URL string:", algorithmInputPanel.selectedFileUrl.toString())
+                    
+                    var algorithmName = newAlgorithmName.text.trim()
+                    var hasValidName = algorithmName !== ""
+                    var hasValidFile = algorithmInputPanel.selectedFileUrl && algorithmInputPanel.selectedFileUrl.toString() !== ""
+                    
+                    if (hasValidName && hasValidFile) {
+                        console.log("Validation passed - calling accepted signal")
+                        accepted(algorithmName, algorithmInputPanel.selectedFileUrl)
                         close()
                     } else {
+                        var errorMsg = ""
+                        if (!hasValidName) errorMsg += "알고리즘 이름을 입력해주세요. "
+                        if (!hasValidFile) errorMsg += "파일을 선택해주세요."
+                        
+                        console.log("Validation failed:", errorMsg)
                         console.log("알고리즘 이름과 파일을 모두 선택해주세요.")
                     }
                 }
@@ -151,6 +195,27 @@ ApplicationWindow {
         }
     }
     
+    // Platform FileDialog (preferred for macOS)
+    Platform.FileDialog {
+        id: platformFileDialog
+        title: "경로 파일 선택"
+        nameFilters: ["Text files (*.txt)", "CSV files (*.csv)", "All files (*)"]
+        fileMode: Platform.FileDialog.OpenFile
+        folder: Platform.StandardPaths.writableLocation(Platform.StandardPaths.DocumentsLocation)
+        
+        property bool available: true
+        
+        onAccepted: {
+            console.log("Platform FileDialog accepted - file:", platformFileDialog.file)
+            handleFileSelection(platformFileDialog.file)
+        }
+        
+        onRejected: {
+            console.log("Platform FileDialog rejected")
+        }
+    }
+    
+    // Fallback FileDialog
     FileDialog {
         id: fileDialog
         title: "경로 파일 선택"
@@ -158,10 +223,45 @@ ApplicationWindow {
         fileMode: FileDialog.OpenFile
         
         onAccepted: {
-            var fileName = fileDialog.fileUrl.toString()
+            console.log("FileDialog accepted - fileUrl:", fileDialog.fileUrl)
+            console.log("FileDialog selectedFile:", fileDialog.selectedFile)
+            handleFileSelection(fileDialog.fileUrl)
+        }
+        
+        onRejected: {
+            console.log("FileDialog rejected")
+        }
+    }
+    
+    // Common file selection handler
+    function handleFileSelection(fileUrl) {
+        console.log("Handling file selection:", fileUrl)
+        
+        if (fileUrl && fileUrl.toString() !== "") {
+            var fileName = fileUrl.toString()
+            console.log("Full file path:", fileName)
+            
             // 파일 경로에서 파일명만 추출
             var fileNameOnly = fileName.split('/').pop()
-            fileUrlText.text = fileNameOnly
+            // Remove file:// prefix if present
+            if (fileNameOnly.startsWith('file://')) {
+                fileNameOnly = fileNameOnly.substring(7)
+            }
+            
+            fileUrlText.text = "선택된 파일: " + fileNameOnly
+            fileUrlText.color = "#4CAF50"
+            fullPathText.text = "전체 경로: " + fileName
+            
+            // Store the selected file URL for validation
+            algorithmInputPanel.selectedFileUrl = fileUrl
+            
+            console.log("File selected successfully:", fileNameOnly)
+        } else {
+            console.log("File URL is empty or undefined")
+            fileUrlText.text = "파일 선택 실패"
+            fileUrlText.color = "#f44336"
+            fullPathText.text = ""
+            algorithmInputPanel.selectedFileUrl = ""
         }
     }
 }
