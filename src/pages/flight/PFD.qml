@@ -52,6 +52,8 @@ Rectangle {
     Rectangle {
         id: horizon
         anchors.fill: parent
+        // width: parent.width * 2
+        // height: parent.height * 2
         anchors.centerIn: parent
         clip: true
         
@@ -433,53 +435,111 @@ Rectangle {
         Canvas {
             id: headingScale
             anchors.fill: parent
+            
+            // heading 값이 변경될 때마다 다시 그리기
+            Connections {
+                target: pfdRoot
+                function onHeadingChanged() {
+                    headingScale.requestPaint()
+                }
+            }
+            
             onPaint: {
                 var ctx = getContext("2d");
                 ctx.clearRect(0, 0, width, height);
-                // 배경(투명)
-                // 눈금
+                
                 var centerX = width/2;
-                var tapeLength = width; // px, 화면 전체
-                var degPerPx = 20; // 1도당 20px
+                var degPerPx = width / 100; // 화면 전체 너비를 100도로 설정
                 var centerHeading = Math.round(pfdRoot.heading) % 360;
-                for (var i = -tapeLength/2; i <= tapeLength/2; i += 20) {
-                    var deg = (centerHeading + Math.round(i/degPerPx) + 360) % 360;
-                    var x = centerX + i;
-                    ctx.strokeStyle = "#fff";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, 18);
-                    ctx.stroke();
-                    // 숫자/문자
-                    ctx.font = "bold 18px Arial";
-                    ctx.fillStyle = "#fff";
-                    ctx.textAlign = "center";
-                    var label = deg.toString();
-                    if (deg === 0) label = "N";
-                    else if (deg === 90) label = "E";
-                    else if (deg === 180) label = "S";
-                    else if (deg === 270) label = "W";
-                    else if (deg === 45) label = "NE";
-                    else if (deg === 135) label = "SE";
-                    else if (deg === 225) label = "SW";
-                    else if (deg === 315) label = "NW";
-                    ctx.fillText(label, x, 38);
+                var displayRange = 50; // 중심에서 좌우로 50도씩 (총 100도)
+                
+                // 5도 간격 눈금 그리기
+                // 실제 방위각의 5도 배수에 맞춰서 표시
+                var startDeg5 = Math.floor((centerHeading - displayRange) / 5) * 5;
+                var endDeg5 = Math.ceil((centerHeading + displayRange) / 5) * 5;
+                
+                for (var currentDeg5 = startDeg5; currentDeg5 <= endDeg5; currentDeg5 += 5) {
+                    var normalizedDeg5 = (currentDeg5 + 360) % 360;
+                    var relativePos5 = currentDeg5 - centerHeading;
+                    var x5 = centerX + relativePos5 * degPerPx;
+                    
+                    if (x5 >= 0 && x5 <= width) {
+                        ctx.strokeStyle = "#fff";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(x5, 0);
+                        ctx.lineTo(x5, 12);
+                        ctx.stroke();
+                    }
                 }
-                // 중앙 박스 (검은색, 불투명)
+                
+                // 15도 간격 숫자/문자 표시
+                // 실제 방위각의 15도 배수에 맞춰서 표시
+                var startDeg = Math.floor((centerHeading - displayRange) / 15) * 15;
+                var endDeg = Math.ceil((centerHeading + displayRange) / 15) * 15;
+                
+                for (var currentDeg = startDeg; currentDeg <= endDeg; currentDeg += 15) {
+                    var normalizedDeg = (currentDeg + 360) % 360;
+                    var relativePos = currentDeg - centerHeading;
+                    var x = centerX + relativePos * degPerPx;
+                    
+                    if (x >= 30 && x <= width - 30) { // 가장자리 여백 확보
+                        // 15도 간격 눈금은 더 길게
+                        ctx.strokeStyle = "#fff";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, 18);
+                        ctx.stroke();
+                        
+                        // 숫자/문자 표시
+                        ctx.font = "bold 16px Arial";
+                        ctx.fillStyle = "#fff";
+                        ctx.textAlign = "center";
+                        var label = "";
+                        if (normalizedDeg === 0) label = "N";
+                        else if (normalizedDeg === 90) label = "E";
+                        else if (normalizedDeg === 180) label = "S";
+                        else if (normalizedDeg === 270) label = "W";
+                        else if (normalizedDeg === 45) label = "NE";
+                        else if (normalizedDeg === 135) label = "SE";
+                        else if (normalizedDeg === 225) label = "SW";
+                        else if (normalizedDeg === 315) label = "NW";
+                        else if (normalizedDeg % 30 === 0) label = normalizedDeg.toString(); // 30도 배수는 숫자로
+                        else label = normalizedDeg.toString(); // 나머지 15도 간격도 숫자로 표시
+                        
+                        ctx.fillText(label, x, 36);
+                    }
+                }
+                
+                // 중앙 박스 (검은색, 불투명) - 높이를 반으로 줄이고 하단에 배치
+                var boxHeight = height / 2;
                 ctx.fillStyle = "#222";
                 ctx.globalAlpha = 1.0;
-                ctx.fillRect(centerX-38, 0, 76, height);
+                ctx.fillRect(centerX-38, boxHeight, 76, boxHeight);
                 ctx.globalAlpha = 1.0;
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 2;
-                ctx.strokeRect(centerX-38, 0, 76, height);
+                ctx.strokeRect(centerX-38, boxHeight, 76, boxHeight);
+                
+                // 박스 위 삼각형 포인터 (아래쪽을 가리키도록 뒤집음)
+                ctx.beginPath();
+                ctx.moveTo(centerX, boxHeight - 12); // 삼각형 꼭짓점 (아래쪽)
+                ctx.lineTo(centerX - 10, boxHeight); // 왼쪽 모서리 (박스 왼쪽 끝)
+                ctx.lineTo(centerX + 10, boxHeight); // 오른쪽 모서리 (박스 오른쪽 끝)
+                ctx.closePath();
+                ctx.fillStyle = "#222";
+                ctx.fill();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
                 // 현재 heading 값
                 ctx.font = "bold 22px Arial";
                 ctx.fillStyle = "#fff";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(Math.round(pfdRoot.heading).toString().padStart(3,'0'), centerX, height/2);
+                ctx.fillText(Math.round(pfdRoot.heading).toString().padStart(3,'0'), centerX, boxHeight + boxHeight/2);
                 // 하단 구분선
                 ctx.beginPath();
                 ctx.moveTo(0, height-1);
@@ -495,9 +555,9 @@ Rectangle {
     Button {
         id: simToggleBtn
         text: "시뮬레이션 시작/정지"
-        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         anchors.right: parent.right
-        anchors.topMargin: 16
+        anchors.bottomMargin: 16
         anchors.rightMargin: 16
         z: 200
         onClicked: pfdController.toggleSimulation()
