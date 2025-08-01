@@ -4,6 +4,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 
 ColumnLayout {
+    id: connectSerialRoot
     anchors.fill: parent
 
     property string connectionStatusText: "연결 대기"
@@ -30,7 +31,7 @@ ColumnLayout {
 
     Text {
         text: "보드 연결"
-        color: "white"
+        color: "#dddddd"
         font.pixelSize: 24
         font.bold: true
     }
@@ -151,7 +152,7 @@ ColumnLayout {
             Layout.preferredHeight: 40
             Layout.topMargin: 10 // 버튼과의 간격 조정
 
-            color: setupComponent.connectionStatusColor
+            color: connectSerialRoot.connectionStatusColor
             radius: 8
             
             Behavior on color {
@@ -159,7 +160,7 @@ ColumnLayout {
             }
 
             Text {
-                text: setupComponent.connectionStatusText
+                text: connectSerialRoot.connectionStatusText
                 color: "white"
                 font.pixelSize: 14
                 font.weight: 700
@@ -169,8 +170,8 @@ ColumnLayout {
         Connections {
             target: initializePortSelect
             function onConnectionResult(success, message) {
-                setupComponent.connectionStatusText = message
-                setupComponent.connectionStatusColor = success ? "#2196F3" : "#F44336" // 파랑(성공), 빨강(실패)
+                connectSerialRoot.connectionStatusText = message
+                connectSerialRoot.connectionStatusColor = success ? "#2196F3" : "#F44336" // 파랑(성공), 빨강(실패)
             }
         }
     }
