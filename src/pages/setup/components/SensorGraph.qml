@@ -8,6 +8,8 @@ ColumnLayout {
     id: sensorGraphRoot
     anchors.fill: parent
 
+    property bool htmlLoaded: false
+
     property var messageList: [
         { id: 26, name: "SCALED_IMU" },
         { id: 27, name: "RAW_IMU" },
@@ -20,21 +22,25 @@ ColumnLayout {
     ]
     property int selectedMessageId: 1
 
-    property bool htmlLoaded: false
-
     property string selectedMessageName: ""
     property string selectedMessageDesc: ""
     property var messageFrame: [
-        { name: "xacc", value: 0, units: "mG", type: "int16_t", plot: true },
-        { name: "yacc", value: 0, units: "mG", type: "int16_t", plot: true },
-        { name: "zacc", value: 0, units: "mG", type: "int16_t", plot: true },
-        { name: "xgyro", value: 0, units: "mrad/s", type: "int16_t", plot: true },
-        { name: "ygyro", value: 0, units: "mrad/s", type: "int16_t", plot: true },
-        { name: "zgyro", value: 0, units: "mrad/s", type: "int16_t", plot: true },
-        { name: "xmag", value: 0, units: "mgauss", type: "int16_t", plot: true },
-        { name: "ymag", value: 0, units: "mgauss", type: "int16_t", plot: true },
-        { name: "zmag", value: 0, units: "mgauss", type: "int16_t", plot: true }
+        { name: "time_boot_ms", units: "ms", type: "uint32_t", plot: true },
+        { name: "xacc", units: "mG", type: "int16_t", plot: true },
+        { name: "yacc", units: "mG", type: "int16_t", plot: true },
+        { name: "zacc", units: "mG", type: "int16_t", plot: true },
+        { name: "xgyro", units: "mrad/s", type: "int16_t", plot: true },
+        { name: "ygyro", units: "mrad/s", type: "int16_t", plot: true },
+        { name: "zgyro", units: "mrad/s", type: "int16_t", plot: true },
+        { name: "xmag", units: "mgauss", type: "int16_t", plot: true },
+        { name: "ymag", units: "mgauss", type: "int16_t", plot: true },
+        { name: "zmag", units: "mgauss", type: "int16_t", plot: true },
+        { name: "temperature", units: "cdegC", type: "int16_t", plot: true }
     ]
+
+    // 일부러 messageFrame과 분리
+    // 지속적인 업데이트를 하다보니 plot의 checkbox가 흔들림
+    property var selectedMessageValues: []
 
     Component.onCompleted: {
         // 컴포넌트 완료 후 첫 번째 메뉴 항목 자동 선택
@@ -42,25 +48,6 @@ ColumnLayout {
             sensorGraphRoot.selectedMessageId = sensorGraphRoot.messageList[0].id
             initializePortSelect.set_target_message(sensorGraphRoot.selectedMessageId)
             console.log("자동으로 첫 번째 메시지 선택:", sensorGraphRoot.selectedMessageId)
-        }
-    }
-
-    // DataProvider 인스턴스
-    Connections {
-        target: sensorManager
-
-        function onDataReady(data) {
-            // console.log("QML에서 받은 데이터:", data)
-            
-            // HTML이 완전히 로드된 경우에만 JavaScript 함수 호출
-            if (sensorGraphRoot.htmlLoaded) {
-                var jsCode = "window.receiveData(" + JSON.stringify(data) + ");"
-                webView.runJavaScript(jsCode)
-                webView.runJavaScript("console.log('Data sent to HTML:', " + JSON.stringify(data) + ");")
-                webView.runJavaScript("test();")
-            } else {
-                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:", data)
-            }
         }
     }
 
@@ -73,6 +60,33 @@ ColumnLayout {
             sensorGraphRoot.selectedMessageName = metaData.name
             sensorGraphRoot.selectedMessageDesc = metaData.description
             sensorGraphRoot.messageFrame = metaData.fields
+
+            if (sensorGraphRoot.htmlLoaded) {
+                var jsCode = "window.receiveGraphMetaData(" + JSON.stringify(metaData.fields) + ");"
+                webView.runJavaScript(jsCode)
+            } else {
+                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
+            }
+        }
+    }
+
+    // 메시지 업데이트 수신용 Connection
+    Connections {
+        target: initializePortSelect
+
+        function onMessageUpdated(data) {
+            console.log("메시지 업데이트 수신:", data)
+
+            // table의 value 업데이트
+            sensorGraphRoot.selectedMessageValues = data;
+
+            // HTML이 완전히 로드된 경우에만 JavaScript 함수 호출
+            if (sensorGraphRoot.htmlLoaded) {
+                var jsCode = "window.receiveData(" + JSON.stringify(data) + ");"
+                webView.runJavaScript(jsCode)
+            } else {
+                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
+            }
         }
     }
 
@@ -159,7 +173,8 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.leftMargin: 20
-
+            contentWidth: width
+            
             ColumnLayout {
                 anchors.fill: parent
                 
@@ -169,6 +184,7 @@ ColumnLayout {
                     color: "#dddddd"
                     font.pixelSize: 24
                     font.weight: 600
+                    Layout.fillWidth: true
                 }
 
                 // 선택된 메시지의 설명
@@ -319,7 +335,7 @@ ColumnLayout {
                                 border.width: 1
                                 
                                 Text {
-                                    text: tableRow.modelData.value.toString()
+                                    text: sensorGraphRoot.selectedMessageValues[tableRow.index].toString()
                                     color: "#dddddd"
                                     font.pixelSize: 12
                                     anchors.centerIn: parent
@@ -369,7 +385,8 @@ ColumnLayout {
                                     checked: tableRow.modelData.plot
                                     Material.theme: Material.Dark
                                     Material.accent: "#33803F"
-                                    
+                                    visible: !tableRow.modelData.name.startsWith("time") 
+
                                     onCheckedChanged: {
                                         // sensorGraphRoot.updatePlot1(tableRow.index, checked)
                                     }
@@ -383,10 +400,10 @@ ColumnLayout {
                 WebEngineView {
                     id: webView
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 400
+                    Layout.preferredHeight: 400 * (new Set(sensorGraphRoot.messageFrame.map(f => f.units)).size - 1) // 그래프 개수
                     Layout.topMargin: 30
                     url: Qt.resolvedUrl("uplot/stream-data.html")
-                    
+
                     onLoadingChanged: function(loadRequest) {
                         if (loadRequest.status === WebEngineView.LoadFailedStatus) {
                             console.log("Failed to load:", loadRequest.errorString)

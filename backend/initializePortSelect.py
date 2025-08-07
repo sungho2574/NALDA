@@ -11,10 +11,11 @@ from .lib.xmlHandler import XmlHandler
 # QML과 통신을 담당할 백엔드 클래스
 class InitializePortSelect(QObject):
     connectionResult = Signal(bool, str)  # (성공여부, 메시지)
-    # 모니터링 시작을 위한 시그널 (포트, 보드레이트)
-    connectionSuccessful = Signal(str, int)
+
+    connectionSuccessful = Signal(str, int)  # 모니터링 시작을 위한 시그널 (포트, 보드레이트)
 
     messageMetaDataReady = Signal(str)  # 메시지 메타데이터 전달용 시그널
+    messageUpdated = Signal(list)  # 메시지 업데이트 시그널
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -95,6 +96,9 @@ class InitializePortSelect(QObject):
         try:
             while True:
                 data: list = self.mav.read(enPrint=True, enLog=False)
+                if data:
+                    self.messageUpdated.emit(data)
+                    # print(f"Received data: {data}")
         except Exception as e:
             print("[Monitor] 연결 끊김 감지!")
             # self.connectionResult.emit(False, f"{device} : 연결 끊김, 연결 대기 중...")
@@ -113,9 +117,11 @@ class InitializePortSelect(QObject):
         xmlHandler.loadMessageListFromXML({})
         instance = xmlHandler.getMessageInstance(msg_id)
         fields = [field.attrib for field in instance.findall("field")]
+        fields = [field for field in fields if set(field.keys()) <= set(['type', 'name', 'units'])]
         for field in fields:
-            field['value'] = 0
             field['plot'] = True  # QML에서 플롯팅 여부
+            if 'units' not in field:
+                field['units'] = ''
 
         meta_data = {
             'id': msg_id,
