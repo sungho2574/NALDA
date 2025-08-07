@@ -50,6 +50,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 color: "#2a2a2a"
+                radius: 8
 
                 Loader {
                     id: pageLoader
