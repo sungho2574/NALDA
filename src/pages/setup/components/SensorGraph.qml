@@ -8,17 +8,10 @@ ColumnLayout {
     id: sensorGraphRoot
     anchors.fill: parent
 
-    property bool htmlLoaded: false
 
     property var messageList: [
         { id: 26, name: "SCALED_IMU" },
-        { id: 27, name: "RAW_IMU" },
-        { id: 29, name: "SCALED_PRESSURE" },
-        { id: 30, name: "ATTITUDE" },
-        { id: 36, name: "SERVO_OUTPUT_RAW" },
-        { id: 65, name: "RC_CHANNELS" },
-        { id: 116, name: "SCALED_IMU2" },
-        { id: 129, name: "SCALED_IMU3" }
+        
     ]
     property int selectedMessageId: 1
 
@@ -42,13 +35,20 @@ ColumnLayout {
     // 지속적인 업데이트를 하다보니 plot의 checkbox가 흔들림
     property var selectedMessageValues: []
 
-    Component.onCompleted: {
-        // 컴포넌트 완료 후 첫 번째 메뉴 항목 자동 선택
-        if (sensorGraphRoot.messageList.length > 0) {
+    // htmlLoaded 변경 감지 핸들러 추가
+    // 처음에 첫 번째 메시지 선택해서 출력
+    property bool htmlLoaded: false
+    onHtmlLoadedChanged: {
+        if (htmlLoaded && sensorGraphRoot.messageList.length > 0) {
             sensorGraphRoot.selectedMessageId = sensorGraphRoot.messageList[0].id
             initializePortSelect.set_target_message(sensorGraphRoot.selectedMessageId)
             console.log("자동으로 첫 번째 메시지 선택:", sensorGraphRoot.selectedMessageId)
         }
+    }
+
+    // messageList 초기화
+    Component.onCompleted: {
+        sensorGraphRoot.messageList = initializePortSelect.get_message_list() || []
     }
 
     // 메시지 메타데이터 수신용 Connection
@@ -388,7 +388,14 @@ ColumnLayout {
                                     visible: !tableRow.modelData.name.startsWith("time") 
 
                                     onCheckedChanged: {
-                                        // sensorGraphRoot.updatePlot1(tableRow.index, checked)
+                                        sensorGraphRoot.messageFrame[tableRow.index].plot = checked
+
+                                        if (sensorGraphRoot.htmlLoaded) {
+                                            var jsCode = "window.receiveGraphMetaData(" + JSON.stringify(sensorGraphRoot.messageFrame) + ");"
+                                            webView.runJavaScript(jsCode)
+                                        } else {
+                                            console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
+                                        }
                                     }
                                 }
                             }
@@ -400,7 +407,7 @@ ColumnLayout {
                 WebEngineView {
                     id: webView
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 400 * (new Set(sensorGraphRoot.messageFrame.map(f => f.units)).size - 1) // 그래프 개수
+                    Layout.preferredHeight: 450 * (new Set(sensorGraphRoot.messageFrame.slice(1).map(f => f.units)).size) // 그래프 개수
                     Layout.topMargin: 30
                     url: Qt.resolvedUrl("uplot/stream-data.html")
 
@@ -415,7 +422,7 @@ ColumnLayout {
                     }
 
                     onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
-                        // console.log("JS Console:", message)
+                        console.log("JS Console:", message)
                     }
                 }
 

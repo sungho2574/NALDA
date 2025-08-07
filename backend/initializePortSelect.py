@@ -82,7 +82,7 @@ class InitializePortSelect(QObject):
         self.mav.connect(self.port, self.baudrate)
 
         # 연결 확인 코드 필요
-        # serial.Serial()은 시리얼 포트를 여는 코드일 뿐,실제로 연결됐는지를 보장하지 않음
+        # serial.Serial()은 시리얼 포트를 여는 코드일 뿐, 실제로 연결됐는지를 보장하지 않음
         data: list = self.mav.read(enPrint=True, enLog=False)
         if data is False:
             raise serial.SerialException("연결 실패: 데이터 읽기 오류")
@@ -98,7 +98,6 @@ class InitializePortSelect(QObject):
                 data: list = self.mav.read(enPrint=True, enLog=False)
                 if data:
                     self.messageUpdated.emit(data)
-                    # print(f"Received data: {data}")
         except Exception as e:
             print("[Monitor] 연결 끊김 감지!")
             # self.connectionResult.emit(False, f"{device} : 연결 끊김, 연결 대기 중...")
@@ -117,7 +116,6 @@ class InitializePortSelect(QObject):
         xmlHandler.loadMessageListFromXML({})
         instance = xmlHandler.getMessageInstance(msg_id)
         fields = [field.attrib for field in instance.findall("field")]
-        fields = [field for field in fields if set(field.keys()) <= set(['type', 'name', 'units'])]
         for field in fields:
             field['plot'] = True  # QML에서 플롯팅 여부
             if 'units' not in field:
@@ -130,14 +128,20 @@ class InitializePortSelect(QObject):
             'fields': fields
         }
 
-        json_data = json.dumps(meta_data)
-        print(json_data)
-
         # 시그널로 데이터 전달
-        self.messageMetaDataReady.emit(json_data)
+        print(f"메시지 메타데이터 준비 완료: {meta_data}")
+        self.messageMetaDataReady.emit(json.dumps(meta_data))
 
+    @Slot(result=list)
     def get_message_list(self):
         """
         현재 연결된 센서의 메시지 목록을 반환합니다.
         """
-        return self.mav.getMessageList()
+        message_list = []
+        for key, value in self.mav.getMessageList().items():
+            message_list.append({
+                'id': key,
+                'name': value[0]
+            })
+
+        return message_list
