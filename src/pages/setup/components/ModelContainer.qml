@@ -1,35 +1,34 @@
 import QtQuick
 import QtQuick3D
 
-Rectangle {
-    id: modelContainer
-
-    property real cameraDistance: 400
-    property real cameraAzimuth: -30
-    property real cameraElevation: 30
-
-    property real rollAngle: 0
-    property real pitchAngle: 0
-    property real yawAngle: 0
-
-    property bool showFixedAxes: true
-    property bool showHelperAxes: true
-
-    function updateCameraPosition() {
-        var radAzimuth = cameraAzimuth * Math.PI / 180
-        var radElevation = cameraElevation * Math.PI / 180
-        
-        var x = cameraDistance * Math.cos(radElevation) * Math.sin(radAzimuth)
-        var y = cameraDistance * Math.sin(radElevation)
-        var z = cameraDistance * Math.cos(radElevation) * Math.cos(radAzimuth)
-        
-        camera.position = Qt.vector3d(x, y, z)
-        camera.lookAt(Qt.vector3d(0, 0, 0))
-    }
+// Rectangle {
+    
 
     View3D {
-        id: view
-        anchors.fill: parent
+        id: modelContainer
+
+        property real cameraDistance: 400
+        property real cameraAzimuth: -30
+        property real cameraElevation: 30
+
+        property real rollAngle: 0
+        property real pitchAngle: 0
+        property real yawAngle: 0
+
+        property bool showFixedAxes: true
+        property bool showHelperAxes: true
+
+        function updateCameraPosition() {
+            var radAzimuth = cameraAzimuth * Math.PI / 180
+            var radElevation = cameraElevation * Math.PI / 180
+            
+            var x = cameraDistance * Math.cos(radElevation) * Math.sin(radAzimuth)
+            var y = cameraDistance * Math.sin(radElevation)
+            var z = cameraDistance * Math.cos(radElevation) * Math.cos(radAzimuth)
+            
+            camera.position = Qt.vector3d(x, y, z)
+            camera.lookAt(Qt.vector3d(0, 0, 0))
+        }
 
         //! [environment]
         environment: SceneEnvironment {
@@ -198,4 +197,4 @@ Rectangle {
             }
         }
     }
-}
+// }

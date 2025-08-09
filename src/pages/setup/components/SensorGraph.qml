@@ -169,14 +169,19 @@ ColumnLayout {
             Item { Layout.fillHeight: true }
         }
 
-        ScrollView {
+        Flickable {
+            id: mainFlickable
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.leftMargin: 20
             contentWidth: width
-            
+            contentHeight: mainColumn.height
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+
             ColumnLayout {
-                anchors.fill: parent
+                id: mainColumn
+                width: parent.width
                 
                 // 선택된 메시지의 제목
                 Text {
@@ -383,7 +388,6 @@ ColumnLayout {
                                     id: plot1CheckBox
                                     anchors.centerIn: parent
                                     checked: tableRow.modelData.plot
-                                    Material.theme: Material.Dark
                                     Material.accent: "#33803F"
                                     visible: !tableRow.modelData.name.startsWith("time") 
 
@@ -404,25 +408,44 @@ ColumnLayout {
                 }
 
                 // 그래프
-                WebEngineView {
-                    id: webView
+                Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 450 * (new Set(sensorGraphRoot.messageFrame.slice(1).map(f => f.units)).size) // 그래프 개수
                     Layout.topMargin: 30
-                    url: Qt.resolvedUrl("uplot/stream-data.html")
+                    
+                    WebEngineView {
+                        id: webView
+                        anchors.fill: parent
+                        url: Qt.resolvedUrl("uplot/stream-data.html")
+                        
+                        onLoadingChanged: function(loadRequest) {
+                            if (loadRequest.status === WebEngineView.LoadFailedStatus) {
+                                console.log("Failed to load:", loadRequest.errorString)
+                                sensorGraphRoot.htmlLoaded = false
+                            } else if (loadRequest.status === WebEngineView.LoadSucceededStatus) {
+                                console.log("Successfully loaded HTML file")
+                                sensorGraphRoot.htmlLoaded = true
+                            }
+                        }
 
-                    onLoadingChanged: function(loadRequest) {
-                        if (loadRequest.status === WebEngineView.LoadFailedStatus) {
-                            console.log("Failed to load:", loadRequest.errorString)
-                            sensorGraphRoot.htmlLoaded = false
-                        } else if (loadRequest.status === WebEngineView.LoadSucceededStatus) {
-                            console.log("Successfully loaded HTML file")
-                            sensorGraphRoot.htmlLoaded = true
+                        onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
+                            console.log("JS Console:", message)
                         }
                     }
-
-                    onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
-                        console.log("JS Console:", message)
+                    
+                    // 웹엔진뷰 위의 마우스 영역
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.NoButton
+                        hoverEnabled: false  // 호버 이벤트를 웹엔진뷰로 전달
+                        
+                        onWheel: function(wheel) {
+                            var delta = wheel.angleDelta.y * 0.5  // 스크롤 속도 조정
+                            var newY = mainFlickable.contentY - delta
+                            var maxY = Math.max(0, mainFlickable.contentHeight - mainFlickable.height)
+                            mainFlickable.contentY = Math.max(0, Math.min(maxY, newY))
+                            wheel.accepted = true
+                        }
                     }
                 }
 
