@@ -2,6 +2,7 @@ import os
 import sys
 import serial
 import numpy
+import time
 
 from .xmlHandler import XmlHandler
 from .Log import *
@@ -324,7 +325,11 @@ class MiniLink():
         try:
             print(f"[{CLI_NAME}] Loading the messages...")
 
+            start_time = time.time()
             while 1:
+                if time.time() - start_time > 1:  # 1초 동안 데이터가 없으면 연결 실패로 간주
+                    raise
+
                 if (self.__readByte(self.packet) != 0):
                     continue
                 data: numpy.array = self.packet['data']
@@ -345,6 +350,7 @@ class MiniLink():
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
+            return None
 
     def __calculate_crc(self, data, length):
         crc: numpy.uint16 = 0x0000

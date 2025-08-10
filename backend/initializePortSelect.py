@@ -1,6 +1,7 @@
 import json
 import threading
 import serial.tools.list_ports
+import time
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -23,6 +24,9 @@ class InitializePortSelect(QObject):
         self.monitor_thread = None
         self.monitoring = False
 
+        self.port = None  # 현재 연결된 포트
+        self.baudrate = None  # 현재 연결된 보드레이트
+
         self.mav = MiniLink()
         self.data_reading_thread = None
 
@@ -34,7 +38,7 @@ class InitializePortSelect(QObject):
         for port in ports:
             self.port_list.append({
                 'device': port.device,
-                'display': f"{port.device} ({port.description})",
+                'description': port.description,
             })
 
         return self.port_list
@@ -53,6 +57,10 @@ class InitializePortSelect(QObject):
             # 센서 연결
             self._connect(device, baudrate)
             print(f"{device}에 성공적으로 연결되었습니다.")
+
+            # 연결된 포트와 보드레이트 저장
+            self.port = device
+            self.baudrate = baudrate
 
             # 데이터 읽기 스레드 시작
             self.data_reading_thread = threading.Thread(target=self._get_sensor_data, daemon=True)
@@ -77,15 +85,20 @@ class InitializePortSelect(QObject):
         센서와 연결을 시도합니다.
         예외가 발생하면 상위 클래스에서 처리하도록 합니다.
         """
-        self.port = port
-        self.baudrate = baudrate
-        self.mav.connect(self.port, self.baudrate)
+        self.mav.connect(port, baudrate)
 
-        # 연결 확인 코드 필요
-        # serial.Serial()은 시리얼 포트를 여는 코드일 뿐, 실제로 연결됐는지를 보장하지 않음
-        data: list = self.mav.read(enPrint=True, enLog=False)
-        if data is False:
-            raise serial.SerialException("연결 실패: 데이터 읽기 오류")
+        # 연결 확인 코드
+        # self.mav.connect() 내부의 serial.Serial()은 시리얼 포트를 여는 코드일 뿐, 실제로 연결됐는지를 보장하지 않음
+        # start_time = time.time()
+        # while True:
+        #     data: list = self.mav.read(enPrint=True, enLog=False)
+        #     if data:
+        #         print("데이터 수신 성공", data)
+        #         break  # 데이터가 성공적으로 읽히면 연결된 것으로 간주
+        #     if time.time() - start_time > 1:  # 1초 동안 데이터가 없으면 연결 실패로 간주
+        #         print("연결 실패: 데이터 수신 대기 시간 초과")
+        #         # raise serial.SerialException("연결 실패: 데이터 수신 대기 시간 초과")
+        #         break
 
     def _get_sensor_data(self):
         """
@@ -100,8 +113,17 @@ class InitializePortSelect(QObject):
                     self.messageUpdated.emit(data)
         except Exception as e:
             print("[Monitor] 연결 끊김 감지!")
+            self.port = None
+            self.baudrate = None
             # self.connectionResult.emit(False, f"{device} : 연결 끊김, 연결 대기 중...")
             return
+
+    @Slot(result=dict)
+    def get_current_connection(self):
+        return {
+            'port': self.port,
+            'baudrate': self.baudrate
+        }
 
     @Slot(int)
     def set_target_message(self, msg_id: int):
