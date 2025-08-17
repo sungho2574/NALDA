@@ -9,12 +9,7 @@ Rectangle {
 
     signal pageSelected(string pageName)
     
-    property var menuItems: [
-        { name: "SETUP", page: "SETUP", icon: "../assets/icons/sidebar/usb.svg" },
-        { name: "PLAN", page: "PLAN", icon: "../assets/icons/sidebar/map.svg" },
-        { name: "FLIGHT", page: "FLIGHT", icon: "../assets/icons/sidebar/flight.svg" },
-        { name: "CONFIG", page: "CONFIG", icon: "../assets/icons/sidebar/settings.svg" },
-    ]
+    property var menuItems: []
     property string selectedPage: "FLIGHT"
     
 
@@ -24,7 +19,7 @@ Rectangle {
 
         // 상단 로고
         Image {
-            source: "../assets/logo.png"
+            source: "src:/assets/logo.png"
             Layout.fillWidth: true
             Layout.preferredHeight: 100
             fillMode: Image.PreserveAspectFit
@@ -44,10 +39,10 @@ Rectangle {
                 Layout.preferredHeight: 40
                 Layout.alignment: Qt.AlignHCenter
                 radius: 8
-                color: sidebar.selectedPage === menuItem.modelData.page ? "#1a1a1a" : "#2a2a2a"
+                color: sidebar.selectedPage === menuItem.modelData.name ? "#1a1a1a" : "#2a2a2a"
                 
                 function updateColor() {
-                    if (sidebar.selectedPage === menuItem.modelData.page) {
+                    if (sidebar.selectedPage === menuItem.modelData.name) {
                         color = "#1a1a1a"
                     } else {
                         color = "#2a2a2a"
@@ -59,11 +54,11 @@ Rectangle {
                     hoverEnabled: true
                     
                     onClicked: {
-                        sidebar.selectedPage = menuItem.modelData.page
-                        sidebar.pageSelected(menuItem.modelData.page)
+                        sidebar.selectedPage = menuItem.modelData.name
+                        sidebar.pageSelected(menuItem.modelData.name)
                         
                         // 도크 영역 토글
-                        dockManager.toggle_dock_area(menuItem.modelData.page)
+                        dockManager.toggle_dock_area(menuItem.modelData.name)
                         
                         // 모든 메뉴 아이템의 색상을 강제로 업데이트
                         for (let i = 0; i < menuRepeater.count; i++) {
@@ -76,13 +71,13 @@ Rectangle {
                         var globalPos = menuItem.mapToGlobal(menuItem.width + 10, menuItem.height / 2 - 30)
                         tooltipManager.show_tooltip(menuItem.modelData.name, globalPos.x, globalPos.y)
 
-                        if (sidebar.selectedPage === menuItem.modelData.page) {
+                        if (sidebar.selectedPage === menuItem.modelData.name) {
                             return
                         } 
                         menuItem.color = "#3a3a3a"
                     }
                     onExited: {
-                        if (sidebar.selectedPage === menuItem.modelData.page) {
+                        if (sidebar.selectedPage === menuItem.modelData.name) {
                             menuItem.color = "#1a1a1a"
                         } else {
                             menuItem.color = "#2a2a2a"
@@ -93,9 +88,9 @@ Rectangle {
 
                 Image {
                     source: menuItem.modelData.icon
-                    Layout.preferredWidth: 20
-                    Layout.preferredHeight: 20
                     anchors.centerIn: parent
+                    sourceSize.width: 24
+                    sourceSize.height: 24
                     fillMode: Image.PreserveAspectFit
                 }
             }

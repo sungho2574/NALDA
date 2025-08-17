@@ -18,6 +18,7 @@ ColumnLayout {
         if (htmlLoaded) {
             // 시그널 방식으로 메타데이터 요청
             initializePortSelect.set_target_message(attitudeOverviewRoot.selectedMessageId)
+            console.log("HTML 로드 완료, 메타데이터 요청:", attitudeOverviewRoot.selectedMessageId);
         }
     }
 
@@ -196,7 +197,8 @@ ColumnLayout {
                     WebEngineView {
                         id: webView
                         anchors.fill: parent
-                        url: Qt.resolvedUrl("uplot/stream-data.html")
+                        url: Qt.resolvedUrl("../../../components/uplot/stream-data.html")
+                        // url: "src:/pages/setup/attitude-overview/uplot/stream-data.html"
 
                         onLoadingChanged: function(loadRequest) {
                             if (loadRequest.status === WebEngineView.LoadFailedStatus) {
@@ -226,7 +228,6 @@ ColumnLayout {
                             var maxContentY = Math.max(0, customScrollArea.contentHeight - customScrollArea.height)
                             customScrollArea.contentY = Math.max(0, Math.min(maxContentY, newContentY))
                             
-                            console.log("WebEngine area - Wheel scrolling - contentY:", customScrollArea.contentY, "delta:", delta)
                             wheel.accepted = true
                         }
                     }

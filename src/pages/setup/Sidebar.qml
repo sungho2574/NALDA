@@ -1,19 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
 
 
-Rectangle {
+Item {
     id: sidebar
-    color: "#2a2a2a"
 
-    signal pageSelected(string pageName)
-    
-    property var menuItems: [
-        { id: 1, name: "보드 연결" },
-        { id: 2, name: "센서값 시각화" },
-        { id: 3, name: "자세 시각화" },
-    ]
+    signal pageSelected(int pageId)
+
+    property var menuItems: []
     property int selectedPageId: 1
     
 
@@ -42,6 +36,7 @@ Rectangle {
                         color = "#2a2a2a"
                     }
                 }
+
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true

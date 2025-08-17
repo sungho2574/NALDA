@@ -3,15 +3,13 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 
 Rectangle {
-    id: initPage
+    id: configPage
     color: "#2a2a2a"
-    Layout.fillHeight: true
-    Layout.fillWidth: true
-    Layout.margins: 20
+    radius: 8
 
     Text {
         text: "config"
-        color: "white"
+        color: "#dddddd"
         font.pixelSize: 20
         anchors.centerIn: parent
     }

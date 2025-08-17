@@ -165,10 +165,10 @@ ColumnLayout {
                     radius: 6
 
                     Image {
-                        source: "../../../assets/icons/refresh.svg"
+                        source: "src:/assets/icons/serial/refresh.svg"
+                        anchors.centerIn: parent
                         sourceSize.width: 20
                         sourceSize.height: 20
-                        anchors.centerIn: parent
                         fillMode: Image.PreserveAspectFit
                     }
 
@@ -279,9 +279,9 @@ ColumnLayout {
                 visible: connectSerialRoot.connectionStatusVisible
 
                 Image {
-                    source: connectSerialRoot.connectionStatusIsSuccess ? "../../../assets/icons/serial/check_circle.svg" : "../../../assets/icons/serial/block.svg"
-                    Layout.preferredHeight: 14
-                    Layout.preferredWidth: 14
+                    source: connectSerialRoot.connectionStatusIsSuccess ? "src:/assets/icons/serial/check_circle.svg" : "src:/assets/icons/serial/block.svg"
+                    sourceSize.width: 14
+                    sourceSize.height: 14
                     fillMode: Image.PreserveAspectFit
                 }
 

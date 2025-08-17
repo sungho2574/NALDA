@@ -1,22 +1,24 @@
+from windows.manual_gps_window import ManualGpsWindow
+from windows.location_history_window import LocationHistoryWindow
+from backend.sensor_manger import SensorManager
+from backend.tooltip import TooltipManager
+from backend.initializePortSelect import InitializePortSelect
+from backend.dock import DockManager, DockableWidget
+from backend.gps_backend import GpsBackend
+from backend.utils import resource_path
+from PySide6.QtQuickWidgets import QQuickWidget
+from PySide6.QtGui import QFontDatabase, QFont
+from PySide6.QtCore import QUrl, Qt, Slot
+from PySide6.QtWidgets import QApplication, QMainWindow, QDockWidget
+
+from PySide6.QtCore import QDir
+
+
 import sys
 import os
 
 # QML에서 로컬 파일 읽기를 허용하는 환경변수 설정
 os.environ['QML_XHR_ALLOW_FILE_READ'] = '1'
-
-from PySide6.QtWidgets import QApplication, QMainWindow, QDockWidget
-from PySide6.QtCore import QUrl, Qt, Slot
-from PySide6.QtGui import QFontDatabase, QFont
-from PySide6.QtQuickWidgets import QQuickWidget
-
-from backend.utils import resource_path
-from backend.gps_backend import GpsBackend
-from backend.dock import DockManager, DockableWidget
-from backend.initializePortSelect import InitializePortSelect
-from backend.tooltip import TooltipManager
-from backend.sensor_manger import SensorManager
-from windows.location_history_window import LocationHistoryWindow
-from windows.manual_gps_window import ManualGpsWindow
 
 
 class MainWindow(QMainWindow):
@@ -141,26 +143,27 @@ class MainWindow(QMainWindow):
         """도크 위젯들 설정"""
         # 상단 왼쪽 도크
         self.dock_top_left = QDockWidget('카메라', self)
-        widget_top_left = DockableWidget('카메라', "src/pages/flight/Camera.qml", self.gps_backend, self.dock_manager)
+        widget_top_left = DockableWidget('카메라', "src/pages/flight/camera/index.qml",
+                                         self.gps_backend, self.dock_manager)
         self.dock_top_left.setWidget(widget_top_left)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_left)
 
         # 상단 오른쪽 도크
         self.dock_top_right = QDockWidget("PFD", self)
-        widget_top_right = DockableWidget("PFD", "src/pages/flight/PFD.qml", self.gps_backend, self.dock_manager)
+        widget_top_right = DockableWidget("PFD", "src/pages/flight/pfd/index.qml", self.gps_backend, self.dock_manager)
         self.dock_top_right.setWidget(widget_top_right)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_top_right)
 
         # 하단 왼쪽 도크
         self.dock_bottom_left = QDockWidget("ND", self)
-        widget_bottom_left = DockableWidget("ND", "src/pages/flight/ND.qml", self.gps_backend, self.dock_manager)
+        widget_bottom_left = DockableWidget("ND", "src/pages/flight/nd/index.qml", self.gps_backend, self.dock_manager)
         self.dock_bottom_left.setWidget(widget_bottom_left)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_left)
 
         # 하단 오른쪽 도크
         self.dock_bottom_right = QDockWidget("Etc Panels", self)
         widget_bottom_right = DockableWidget(
-            "Etc Panels", "src/pages/flight/EtcPanels.qml", self.gps_backend, self.dock_manager)
+            "Etc Panels", "src/pages/flight/etc-panels/index.qml", self.gps_backend, self.dock_manager)
         self.dock_bottom_right.setWidget(widget_bottom_right)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_bottom_right)
 
@@ -293,6 +296,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    QDir.addSearchPath("src", "src")
 
     # QML 스타일 설정 (Material)
     os.environ['QT_QUICK_CONTROLS_STYLE'] = 'Material'
@@ -313,7 +317,7 @@ def main():
 
     # 수동 GPS 입력 윈도우 생성 및 표시
     manual_gps_window = ManualGpsWindow(window.gps_backend)
-    manual_gps_window.show()
+    # manual_gps_window.show()
 
     sys.exit(app.exec())
 

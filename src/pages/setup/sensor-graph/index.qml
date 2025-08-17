@@ -11,7 +11,6 @@ ColumnLayout {
 
     property var messageList: [
         { id: 26, name: "SCALED_IMU" },
-        
     ]
     property int selectedMessageId: 1
 
@@ -19,16 +18,6 @@ ColumnLayout {
     property string selectedMessageDesc: ""
     property var messageFrame: [
         { name: "time_boot_ms", units: "ms", type: "uint32_t", plot: true },
-        { name: "xacc", units: "mG", type: "int16_t", plot: true },
-        { name: "yacc", units: "mG", type: "int16_t", plot: true },
-        { name: "zacc", units: "mG", type: "int16_t", plot: true },
-        { name: "xgyro", units: "mrad/s", type: "int16_t", plot: true },
-        { name: "ygyro", units: "mrad/s", type: "int16_t", plot: true },
-        { name: "zgyro", units: "mrad/s", type: "int16_t", plot: true },
-        { name: "xmag", units: "mgauss", type: "int16_t", plot: true },
-        { name: "ymag", units: "mgauss", type: "int16_t", plot: true },
-        { name: "zmag", units: "mgauss", type: "int16_t", plot: true },
-        { name: "temperature", units: "cdegC", type: "int16_t", plot: true }
     ]
 
     // 일부러 messageFrame과 분리
@@ -108,6 +97,23 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            // 메시지 목록이 비어있을 때만 출력
+            Rectangle {
+                Layout.preferredHeight: 40
+                Layout.preferredWidth: 250
+                radius: 8
+                color: "#3a3a3a"
+                visible: sensorGraphRoot.messageList.length === 0
+
+                Text {
+                    text: "메시지 없음"
+                    color: "#dddddd"
+                    font.pixelSize: 14
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+            }
 
             Repeater {
                 id: menuRepeater
@@ -416,7 +422,7 @@ ColumnLayout {
                     WebEngineView {
                         id: webView
                         anchors.fill: parent
-                        url: Qt.resolvedUrl("uplot/stream-data.html")
+                        url: Qt.resolvedUrl("../../../components/uplot/stream-data.html")
                         
                         onLoadingChanged: function(loadRequest) {
                             if (loadRequest.status === WebEngineView.LoadFailedStatus) {

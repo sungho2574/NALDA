@@ -1,65 +1,49 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
-import QtQuick.Controls.Material 2.15
-
-import "./components" as Components
 
 
 Rectangle {
-    id: setupComponent
-    Layout.fillHeight: true
-    Layout.fillWidth: true
-    color: "#1a1a1a"
+    id: setupPage
+    color: "#2a2a2a"
+    radius: 8
 
     property var menuItems: [
-        { id: 1, name: "보드 연결", source: "components/ConnectSerial.qml" },
-        { id: 2, name: "센서값 시각화", source: "components/SensorGraph.qml" },
-        { id: 3, name: "자세 시각화", source: "components/AttitudeOverview.qml" },
+        { id: 1, name: "보드 연결", source: "connect-serial/index.qml" },
+        { id: 2, name: "센서값 시각화", source: "sensor-graph/index.qml" },
+        { id: 3, name: "자세 시각화", source: "attitude-overview/index.qml" },
     ]
     property int selectedPageId: 1
 
 
-    Rectangle {
+    RowLayout{
         anchors.fill: parent
-        anchors.leftMargin: 0
-        anchors.rightMargin: 0
-        anchors.topMargin: 0
-        anchors.bottomMargin: 0
-        color: "#2a2a2a"
-        radius: 8
 
-        RowLayout{
-            anchors.fill: parent
-            spacing: 10
+        // 설정 메뉴 목록
+        Sidebar {
+            Layout.preferredWidth: 200
+            Layout.fillHeight: true
+            Layout.margins: 20
 
-            // 설정 사이드바
-            Components.Sidebar {
-                Layout.preferredWidth: 200
-                Layout.fillHeight: true
-                Layout.margins: 20
-                color: "#2a2a2a"
+            // 메뉴 목록을 사이드바에 전달
+            menuItems: setupPage.menuItems
 
-                onPageSelected: (pageId) => {
-                    setupComponent.selectedPageId = pageId;
-                }
+            // 사이드바에서 선택된 페이지를 업데이트
+            onPageSelected: (pageId) => {
+                setupPage.selectedPageId = pageId;
             }
+        }
 
-            // 컨텐츠 영역
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                color: "#2a2a2a"
-                radius: 8
+        // 컨텐츠 영역
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.margins: 20
 
-                Loader {
-                    id: pageLoader
-                    anchors.fill: parent
-                    anchors.margins: 20
-                    
-                    source: setupComponent.menuItems.find(item => item.id === setupComponent.selectedPageId)?.source || "components/ConnectSerial.qml"
-                }
-
+            Loader {
+                id: pageLoader
+                anchors.fill: parent
+                
+                source: setupPage.menuItems.find(item => item.id === setupPage.selectedPageId).source
             }
         }
     }

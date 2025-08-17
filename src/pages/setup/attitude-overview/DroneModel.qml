@@ -14,10 +14,10 @@ Node {
     // Apply rotation based on input angles
     eulerRotation: Qt.vector3d(- pitchAngle, - yawAngle, rollAngle)
 
-    // Resources - 드론 모델 재질 개선
+    // 드론 모델 재질 개선
     PrincipledMaterial {
-        id: finalDJI_material
-        objectName: "FinalDJI"
+        id: mavicMaterial
+        objectName: "mavic"
         baseColor: "#999"
         roughness: 0.4
         metalness: 0.2
@@ -49,22 +49,6 @@ Node {
         roughness: 0.1
         metalness: 0.0
         emissiveFactor: Qt.vector3d(0.0, 0.0, 0.6)
-    }
-
-    // 드론 3D 도델
-    Node {
-        id: mavic_obj
-        objectName: "mavic.obj"
-        Model {
-            id: wing8
-            objectName: "Wing8"
-            source: "meshes/wing8_mesh.mesh"
-            scale: Qt.vector3d(30, 30, 30)
-            position: Qt.vector3d(0, -30, 0)
-            materials: [
-                finalDJI_material
-            ]
-        }
     }
 
     // roll axis 
@@ -99,9 +83,14 @@ Node {
         visible: showHelperAxes
     }
 
-    // 백엔드에서 각도 값을 설정하면 해당 각도로 즉시 회전됩니다
-    // 사용법:
-    // resultModel.rollAngle = 45    // X축으로 45도 회전
-    // resultModel.pitchAngle = 30   // Y축으로 30도 회전  
-    // resultModel.yawAngle = 90     // Z축으로 90도 회전
+    // 드론 3D 모델
+    Model {
+        id: mavic
+        objectName: "mavic"
+        source: "../../../assets/meshes/mavic.mesh"
+        // source: "src:/assets/meshes/mavic.mesh"
+        scale: Qt.vector3d(30, 30, 30)
+        position: Qt.vector3d(0, -30, 12)
+        materials: [mavicMaterial]
+    }
 }

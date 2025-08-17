@@ -16,7 +16,7 @@ class ManualGpsWindow(QMainWindow):
         # 소스 로드 전에 컨텍스트 설정
         self.qml_widget.rootContext().setContextProperty("gpsBackend", gps_backend)
 
-        qml_file = resource_path("src/pages/flight/ManualGpsInput.qml")
+        qml_file = resource_path("src/pages/flight/nd/ManualGpsInput.qml")
         self.qml_widget.setSource(QUrl.fromLocalFile(qml_file))
         self.qml_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
         self.setCentralWidget(self.qml_widget)

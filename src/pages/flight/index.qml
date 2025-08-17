@@ -1,10 +1,6 @@
 import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
 
-Rectangle {
-    color: "#1a1a1a"
-    Layout.fillHeight: true
-    Layout.fillWidth: true
-    Layout.margins: 20
+Item {
+    id: flightPage
+    // flight 페이지는 우측의 dock window로 대체되므로 내용이 필요하지 않음
 }

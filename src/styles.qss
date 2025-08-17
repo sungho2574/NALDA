@@ -2,6 +2,8 @@ QMainWindow {
     background-color: #1a1a1a;
 }
 
+ 
+/* 상단 메뉴바 스타일 */
 QMenuBar {
     background-color: #1a1a1a;
     color: #ffffff;
@@ -30,6 +32,8 @@ QMenu::item:selected {
     background-color: #2a2a2a;
 }
 
+
+/* Dock Widget */
 QDockWidget {
     background-color: #1a1a1a;
     color: #1a1a1a;
