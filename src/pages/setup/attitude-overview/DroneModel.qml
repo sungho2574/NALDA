@@ -87,8 +87,7 @@ Node {
     Model {
         id: mavic
         objectName: "mavic"
-        source: "../../../assets/meshes/mavic.mesh"
-        // source: "src:/assets/meshes/mavic.mesh"
+        source: resourceManager.getUrl("assets/meshes/mavic.mesh")
         scale: Qt.vector3d(30, 30, 30)
         position: Qt.vector3d(0, -30, 12)
         materials: [mavicMaterial]

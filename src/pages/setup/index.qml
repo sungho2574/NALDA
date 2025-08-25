@@ -12,7 +12,7 @@ Rectangle {
         { id: 2, name: "센서값 시각화", source: "sensor-graph/index.qml" },
         { id: 3, name: "자세 시각화", source: "attitude-overview/index.qml" },
     ]
-    property int selectedPageId: 1
+    property int selectedMenuId: 1
 
 
     RowLayout{
@@ -28,8 +28,8 @@ Rectangle {
             menuItems: setupPage.menuItems
 
             // 사이드바에서 선택된 페이지를 업데이트
-            onPageSelected: (pageId) => {
-                setupPage.selectedPageId = pageId;
+            onMenuSelected: (menuId) => {
+                setupPage.selectedMenuId = menuId;
             }
         }
 
@@ -42,8 +42,8 @@ Rectangle {
             Loader {
                 id: pageLoader
                 anchors.fill: parent
-                
-                source: setupPage.menuItems.find(item => item.id === setupPage.selectedPageId).source
+
+                source: setupPage.menuItems.find(item => item.id === setupPage.selectedMenuId).source
             }
         }
     }

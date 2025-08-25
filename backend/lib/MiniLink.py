@@ -83,7 +83,7 @@ class MiniLink():
             print(f"[{CLI_NAME}] invaild message id")
             return 1
 
-        print(self.xmlHandler.getMessageColumnNames(id))
+        # print(self.xmlHandler.getMessageColumnNames(id))
         self.__MSG_ID = id
 
         return 0

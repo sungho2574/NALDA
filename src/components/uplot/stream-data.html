@@ -14,6 +14,7 @@
 	<div id="graphs"></div>
 	<script src="./uPlot.iife.js"></script>
 	<script>
+		// 마우스 위치 동기화를 위한 설정
 		let mooSync = uPlot.sync("moo");
 
 		let synced = true;
@@ -70,7 +71,7 @@
 			const colors = [];
 			for (let i = 0; i < count; i++) {
 				const hue = Math.round((360 / count) * i);  // 균등한 Hue
-				colors.push(hslToHex(hue, 70, 50));         // Saturation: 70%, Lightness: 50%
+				colors.push(hslToHex(hue, 30, 50));         // Saturation: 70%, Lightness: 50%
 			}
 			return colors;
 		}
@@ -163,7 +164,8 @@
 				if (groupedMetaData[unit].length > 3) {
 					colors = generateHexColors(groupedMetaData[unit].length);
 				} else {
-					colors = ['red', 'green', 'blue'];
+					// colors = ['red', 'green', 'blue'];
+					colors = ['#B1556A', '#6DB178', '#445AB1'];
 				}
 
 				// series 생성
@@ -171,7 +173,8 @@
 					return {
 						label: item.name,
 						value: makeFmt(''),
-						stroke: colors[i]
+						stroke: colors[i],
+						width: 1.5
 					};
 				});
 				series.unshift({
@@ -187,6 +190,7 @@
 			}
 		};
 
+		// 그래프 데이터 초기화 함수
 		window.initGraphData = function (graphOptions) {
 			graphData = [];
 			graphOptions.forEach(opts => {
@@ -200,6 +204,7 @@
 			});
 		};
 
+		// 반응형 레이아웃을 위한 크기 계산 함수
 		function getSize() {
 			let graphWrapper = document.getElementById("graphs");
 			return {
@@ -208,6 +213,7 @@
 			};
 		}
 
+		// 그래프 생성 함수
 		function makeChart(opts, dataIndex, interval = 100) {
 			let uplot = new uPlot(opts, graphData[dataIndex], document.getElementById("graphs"));
 
@@ -229,9 +235,10 @@
 			setIntervalInstances.forEach(intervalId => {
 				clearInterval(intervalId);
 			});
-			setIntervalInstances = []; // setInterval 인스턴스 초기화
+			setIntervalInstances = [];
 
-			document.getElementById('graphs').innerHTML = ''; // 그래프 초기화
+			// 그래프 초기화
+			document.getElementById('graphs').innerHTML = '';
 			initGraphOpts(metaData);
 			initGraphData(graphOptions);
 
@@ -244,22 +251,19 @@
 		// QML에서 데이터를 받을 함수
 		window.receiveData = function (data) {
 			graphOptions.forEach((opts, graphIndex) => {
+				// 축 이름 추출 (ex: time_boot_ms, xacc, yacc, zacc)
 				let seriesNames = opts.series.map(s => s.label);
 
-				let matchIndex = [];
-				graphMetaData.forEach((meta, i) => {
-					if (seriesNames.includes(meta.name)) {
-						matchIndex.push(i);
-					}
-				});
-
+				// 타임스탬프 초깃값은 0~199로 임의로 설정된 값임
+				// 자연스러운 그래프 움직임을 위해 첫 출력 시 103ms 간격으로 변경
 				if (seriesNames[0].startsWith('time') && graphData[graphIndex][0][0] === 0) {
-					graphData[graphIndex][0] = Array.from({ length: 200 }, (_, idx) => data[0] - 200 * 103 + idx * 103);
-					console.log("타임스탬프 데이터 초기화");
+					let timestampName = seriesNames[0];
+					graphData[graphIndex][0] = Array.from({ length: 200 }, (_, idx) => data[timestampName] - 200 * 103 + idx * 103);
 				}
 
-				matchIndex.forEach((i, j) => {
-					graphData[graphIndex][j] = graphData[graphIndex][j].slice(1).concat([data[i]]);
+				// 맨 앞 데이터는 삭제하고 맨 뒤에 새 데이터 추가
+				seriesNames.forEach((name, i) => {
+					graphData[graphIndex][i] = graphData[graphIndex][i].slice(1).concat([data[name]]);
 				});
 			});
 		};

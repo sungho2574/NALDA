@@ -23,12 +23,12 @@ ColumnLayout {
 
     // 포트 목록 업데이트 함수
     function updatePortList() {
-        connectSerialRoot.portList = initializePortSelect.get_port_list() || []
+        connectSerialRoot.portList = serialManager.getPortList() || []
     }
 
     // 현재 선택된 포트와 보율을 가져오는 함수
     function getCurrentConnection() {
-        var connection =  initializePortSelect.get_current_connection() || {}
+        var connection =  serialManager.getCurrentConnection() || {}
         if (connection.port && connection.baudrate) {
             console.log("현재 연결된 포트:", connection.port)
             console.log("현재 연결된 보드레이트:", connection.baudrate)
@@ -165,7 +165,7 @@ ColumnLayout {
                     radius: 6
 
                     Image {
-                        source: "src:/assets/icons/serial/refresh.svg"
+                        source: resourceManager.getUrl("assets/icons/serial/refresh.svg")
                         anchors.centerIn: parent
                         sourceSize.width: 20
                         sourceSize.height: 20
@@ -253,7 +253,7 @@ ColumnLayout {
                     repeat: false
                     onTriggered: {
                         // 선택된 항목의 데이터와 보율을 인자로 전달
-                        initializePortSelect.connect_button_clicked(
+                        serialManager.connectButtonClicked(
                             portComboBox.model[portComboBox.currentIndex].device,
                             baudRateComboBox.currentValue
                         )
@@ -261,7 +261,7 @@ ColumnLayout {
                 }
 
                 Connections {
-                    target: initializePortSelect
+                    target: serialManager
                     function onConnectionResult(is_success, message) {
                         connectSerialRoot.connectionStatusVisible = true
                         connectSerialRoot.connectionStatusIsSuccess = is_success
@@ -279,7 +279,7 @@ ColumnLayout {
                 visible: connectSerialRoot.connectionStatusVisible
 
                 Image {
-                    source: connectSerialRoot.connectionStatusIsSuccess ? "src:/assets/icons/serial/check_circle.svg" : "src:/assets/icons/serial/block.svg"
+                    source: connectSerialRoot.connectionStatusIsSuccess ? resourceManager.getUrl("assets/icons/serial/check_circle.svg") : resourceManager.getUrl("assets/icons/serial/block.svg")
                     sourceSize.width: 14
                     sourceSize.height: 14
                     fillMode: Image.PreserveAspectFit

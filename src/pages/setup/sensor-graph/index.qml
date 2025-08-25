@@ -8,70 +8,47 @@ ColumnLayout {
     id: sensorGraphRoot
     anchors.fill: parent
 
-
+    // 메시지 목록과 선택된 메시지
     property var messageList: [
         { id: 26, name: "SCALED_IMU" },
     ]
     property int selectedMessageId: 1
 
+    // 현재 표시되는 메시지의 메타 정보
     property string selectedMessageName: ""
     property string selectedMessageDesc: ""
     property var messageFrame: [
         { name: "time_boot_ms", units: "ms", type: "uint32_t", plot: true },
     ]
-
-    // 일부러 messageFrame과 분리
-    // 지속적인 업데이트를 하다보니 plot의 checkbox가 흔들림
-    property var selectedMessageValues: []
-
-    // htmlLoaded 변경 감지 핸들러 추가
-    // 처음에 첫 번째 메시지 선택해서 출력
+    property var selectedMessageValues: [] // 일부러 messageFrame과 분리, 지속적인 업데이트를 하다보니 plot의 checkbox가 흔들림
+    
     property bool htmlLoaded: false
+    
+    // htmlLoaded 변경 감지 핸들러
+    // 처음에 첫 번째 메시지 선택해서 출력
     onHtmlLoadedChanged: {
         if (htmlLoaded && sensorGraphRoot.messageList.length > 0) {
             sensorGraphRoot.selectedMessageId = sensorGraphRoot.messageList[0].id
-            initializePortSelect.set_target_message(sensorGraphRoot.selectedMessageId)
-            console.log("자동으로 첫 번째 메시지 선택:", sensorGraphRoot.selectedMessageId)
+            setTargetMessage(sensorGraphRoot.selectedMessageId)
         }
     }
 
     // messageList 초기화
     Component.onCompleted: {
-        sensorGraphRoot.messageList = initializePortSelect.get_message_list() || []
-    }
-
-    // 메시지 메타데이터 수신용 Connection
-    Connections {
-        target: initializePortSelect
-
-        function onMessageMetaDataReady(jsonData) {
-            var metaData = JSON.parse(jsonData)
-            sensorGraphRoot.selectedMessageName = metaData.name
-            sensorGraphRoot.selectedMessageDesc = metaData.description
-            sensorGraphRoot.messageFrame = metaData.fields
-
-            if (sensorGraphRoot.htmlLoaded) {
-                var jsCode = "window.receiveGraphMetaData(" + JSON.stringify(metaData.fields) + ");"
-                webView.runJavaScript(jsCode)
-            } else {
-                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
-            }
-        }
+        sensorGraphRoot.messageList = serialManager.getMessageList() || []
     }
 
     // 메시지 업데이트 수신용 Connection
     Connections {
-        target: initializePortSelect
+        target: sensorGraphManager
 
         function onMessageUpdated(data) {
-            console.log("메시지 업데이트 수신:", data)
-
             // table의 value 업데이트
-            sensorGraphRoot.selectedMessageValues = data;
+            sensorGraphRoot.selectedMessageValues = messageFrame.map(field => data[field.name])
 
             // HTML이 완전히 로드된 경우에만 JavaScript 함수 호출
             if (sensorGraphRoot.htmlLoaded) {
-                var jsCode = "window.receiveData(" + JSON.stringify(data) + ");"
+                var jsCode = `window.receiveData(${JSON.stringify(data)});`
                 webView.runJavaScript(jsCode)
             } else {
                 console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
@@ -148,7 +125,7 @@ ColumnLayout {
                             console.log("메시지 ID 변경:", sensorGraphRoot.selectedMessageId)
                             
                             // 시그널 방식으로 메타데이터 요청
-                            initializePortSelect.set_target_message(sensorGraphRoot.selectedMessageId)
+                            setTargetMessage(sensorGraphRoot.selectedMessageId)
                             
                             // 모든 메뉴 아이템의 색상을 강제로 업데이트
                             for (let i = 0; i < menuRepeater.count; i++) {
@@ -458,6 +435,21 @@ ColumnLayout {
                 // 여백
                 Item { Layout.fillHeight: true }
             }
+        }
+    }
+
+    function setTargetMessage(msgId) {
+        console.log("setTargetMessage 호출:", msgId)
+        var metaData = sensorGraphManager.setTargetMessage(msgId)
+        sensorGraphRoot.selectedMessageName = metaData.name
+        sensorGraphRoot.selectedMessageDesc = metaData.description
+        sensorGraphRoot.messageFrame = metaData.fields
+
+        if (sensorGraphRoot.htmlLoaded) {
+            var jsCode = `window.receiveGraphMetaData(${JSON.stringify(metaData.fields)});`
+            webView.runJavaScript(jsCode)
+        } else {
+            console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
         }
     }
 }

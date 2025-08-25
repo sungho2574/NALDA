@@ -7,7 +7,7 @@ from PySide6.QtCore import QObject, Signal, QTimer, Slot
 
 
 # @QmlElement
-class PFDController(QObject):
+class PFDManager(QObject):
     """
     PFD (Primary Flight Display) 데이터를 처리하고 QML과 통신하는 컨트롤러
     """
@@ -37,6 +37,16 @@ class PFDController(QObject):
         # 시뮬레이션 상태
         self._simulation_active = False
         self._simulation_time = 0.0
+
+    @Slot(int, dict)
+    def get_data(self, message_id: int, data: dict):
+        """
+        SerialManager에 메시지가 전달되면 호출되는 슬롯
+        """
+        # if message_id == self.current_message_id:
+        #     self.message_data = data
+        #     self.messageUpdated.emit(data)
+        pass
 
     @property
     def pitch_angle(self):

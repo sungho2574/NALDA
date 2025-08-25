@@ -16,10 +16,10 @@ Rectangle {
     
     // 페이지 목록을 한 곳에서 관리
     property var pageMap: [
-        { name: "SETUP", source: "pages/setup/index.qml", icon: "src:/assets/icons/sidebar/usb.svg" },
-        { name: "PLAN", source: "pages/plan/index.qml", icon: "src:/assets/icons/sidebar/map.svg" },
-        { name: "FLIGHT", source: "pages/flight/index.qml", icon: "src:/assets/icons/sidebar/flight.svg" },
-        { name: "CONFIG", source: "pages/config/index.qml", icon: "src:/assets/icons/sidebar/settings.svg" },
+        { name: "SETUP", source: "pages/setup/index.qml", icon: "assets/icons/sidebar/usb.svg" },
+        { name: "PLAN", source: "pages/plan/index.qml", icon: "assets/icons/sidebar/map.svg" },
+        { name: "FLIGHT", source: "pages/flight/index.qml", icon: "assets/icons/sidebar/flight.svg" },
+        // { name: "CONFIG", source: "pages/config/index.qml", icon: "assets/icons/sidebar/settings.svg" },
     ]
     property string currentPage: "FLIGHT"
 

@@ -74,7 +74,7 @@ Rectangle {
             id: historyView
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: gpsBackend ? gpsBackend.pathData : []
+            model: gpsManager ? gpsManager.pathData : []
 
             delegate: Rectangle {
                 width: historyView.width
@@ -102,8 +102,8 @@ Rectangle {
             Layout.alignment: Qt.AlignRight
             text: "경로 기록 초기화"
             onClicked: {
-                if(gpsBackend) {
-                    gpsBackend.clearPath()
+                if(gpsManager) {
+                    gpsManager.clearPath()
                 }
             }
         }

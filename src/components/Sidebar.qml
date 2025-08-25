@@ -19,7 +19,7 @@ Rectangle {
 
         // 상단 로고
         Image {
-            source: "src:/assets/logo.png"
+            source: resourceManager.getUrl("assets/logo.png")
             Layout.fillWidth: true
             Layout.preferredHeight: 100
             fillMode: Image.PreserveAspectFit
@@ -87,7 +87,7 @@ Rectangle {
                 }
 
                 Image {
-                    source: menuItem.modelData.icon
+                    source: resourceManager.getUrl(menuItem.modelData.icon)
                     anchors.centerIn: parent
                     sourceSize.width: 24
                     sourceSize.height: 24

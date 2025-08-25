@@ -11,9 +11,9 @@ Rectangle {
 
     // gpsBackend의 시그널을 처리하기 위한 Connections
     Connections {
-        target: gpsBackend
+        target: gpsManager
         // gpsBackend가 유효한 경우에만 시그널 핸들러 활성화
-        enabled: gpsBackend !== null
+        enabled: gpsManager !== null
 
         function onGpsDataChanged(lat, lon, alt, hdg) {
             // console.log("QML Received GPS:", lat, lon, alt, hdg);
@@ -102,7 +102,7 @@ Rectangle {
 
                     // 드론 이동 경로 (실선)
                     MapPolyline {
-                        path: gpsBackend ? gpsBackend.pathCoordinates : []
+                        path: gpsManager ? gpsManager.pathCoordinates : []
                         line.color: "#FF0000" // 빨간색
                         line.width: 3
                     }
@@ -110,7 +110,7 @@ Rectangle {
                     // 과거 경로 지점들 (빨간 원 + 숫자)
                     MapItemView {
                         // 현재 위치(마지막 점)를 제외한 모든 점을 모델로 사용
-                        model: gpsBackend ? gpsBackend.pathCoordinates.slice(0, gpsBackend.pathCoordinates.length - 1) : []
+                        model: gpsManager ? gpsManager.pathCoordinates.slice(0, gpsManager.pathCoordinates.length - 1) : []
                         delegate: MapQuickItem {
                             coordinate: modelData
                             anchorPoint.x: 10
@@ -138,7 +138,7 @@ Rectangle {
                         anchorPoint.x: 15
                         anchorPoint.y: 15
                         // pathData가 비어있지 않으면 가장 마지막 좌표를 사용
-                        coordinate: (gpsBackend && gpsBackend.pathCoordinates.length > 0) ? gpsBackend.pathCoordinates[gpsBackend.pathCoordinates.length - 1] : QtPositioning.coordinate(37.450767, 126.657016)
+                        coordinate: (gpsManager && gpsManager.pathCoordinates.length > 0) ? gpsManager.pathCoordinates[gpsManager.pathCoordinates.length - 1] : QtPositioning.coordinate(37.450767, 126.657016)
 
                         sourceItem: Rectangle {
                             width: 30; height: 30
@@ -149,7 +149,7 @@ Rectangle {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: gpsBackend ? gpsBackend.pathCoordinates.length : 0 // 경로 순서
+                                text: gpsManager ? gpsManager.pathCoordinates.length : 0 // 경로 순서
                                 color: "white"
                                 font.bold: true
                                 font.pixelSize: 14
@@ -191,7 +191,7 @@ Rectangle {
                         
                         Image {
                             id: zoomInImage
-                            source: "../../assets/icons/map/zoomIn_btn.png"
+                            source: resourceManager.getUrl("assets/icons/map/zoomIn_btn.png")
                             fillMode: Image.PreserveAspectFit
                             anchors.centerIn: parent
                             width: 32
@@ -233,7 +233,7 @@ Rectangle {
                         
                         Image {
                             id: zoomOutImage
-                            source: "../../assets/icons/map/zoomOut_btn.png"
+                            source: resourceManager.getUrl("assets/icons/map/zoomOut_btn.png")
                             fillMode: Image.PreserveAspectFit
                             anchors.centerIn: parent
                             width: 32
@@ -276,7 +276,7 @@ Rectangle {
                     Layout.preferredWidth: 2
                     text: "경로 기록 조회"
                     onClicked: {
-                        dockManager.showLocationHistory()
+                        gpsManager.showLocationHistory()
                     }
                 }
             }

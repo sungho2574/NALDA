@@ -8,19 +8,10 @@ ColumnLayout {
     id: attitudeOverviewRoot
     anchors.fill: parent
 
-    property int selectedMessageId: 30
     property var messageFrame: []
+    property int selectedMessageId: 30
 
-    // htmlLoaded 변경 감지 핸들러 추가
-    // 30번 ATTITUDE를 받아오도록 수정
     property bool htmlLoaded: false
-    onHtmlLoadedChanged: {
-        if (htmlLoaded) {
-            // 시그널 방식으로 메타데이터 요청
-            initializePortSelect.set_target_message(attitudeOverviewRoot.selectedMessageId)
-            console.log("HTML 로드 완료, 메타데이터 요청:", attitudeOverviewRoot.selectedMessageId);
-        }
-    }
 
     property real rollAngle: 0
     property real pitchAngle: 0
@@ -29,45 +20,34 @@ ColumnLayout {
     property bool showFixedAxes: true
     property bool showHelperAxes: true
 
+    // htmlLoaded 변경 감지 핸들러 추가
+    // 30번 ATTITUDE를 받아오도록 수정
+    onHtmlLoadedChanged: {
+        if (htmlLoaded) {
+            var metaData = attitudeOverviewManager.setTargetMessage(attitudeOverviewRoot.selectedMessageId);
+            attitudeOverviewRoot.messageFrame = metaData.fields;
 
-    // 메시지 메타데이터 수신용 Connection
-    Connections {
-        target: initializePortSelect
-
-        function onMessageMetaDataReady(jsonData) {
-            var metaData = JSON.parse(jsonData)
-            attitudeOverviewRoot.messageFrame = metaData.fields
-
-            if (attitudeOverviewRoot.htmlLoaded) {
-                var jsCode = "window.receiveGraphMetaData(" + JSON.stringify(metaData.fields) + ");"
-                webView.runJavaScript(jsCode)
-            } else {
-                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
-            }
+            var jsCode = `window.receiveGraphMetaData(${JSON.stringify(metaData.fields)});`;
+            webView.runJavaScript(jsCode);
         }
     }
 
     // 메시지 업데이트 수신용 Connection
     Connections {
-        target: initializePortSelect
+        target: attitudeOverviewManager
 
         function onMessageUpdated(data) {
-            console.log("메시지 업데이트 수신:", data)
-
             // 자세 업데이트
-            attitudeOverviewRoot.rollAngle = data[1] || 0;
-            attitudeOverviewRoot.pitchAngle = data[2] || 0;
-            attitudeOverviewRoot.yawAngle = data[3] || 0;
-            console.log("roll: ", attitudeOverviewRoot.rollAngle);
-            console.log("pitch: ", attitudeOverviewRoot.pitchAngle);
-            console.log("yaw: ", attitudeOverviewRoot.yawAngle);
+            attitudeOverviewRoot.rollAngle = data.roll;
+            attitudeOverviewRoot.pitchAngle = data.pitch;
+            attitudeOverviewRoot.yawAngle = data.yaw;
 
             // HTML이 완전히 로드된 경우에만 JavaScript 함수 호출
             if (attitudeOverviewRoot.htmlLoaded) {
-                var jsCode = "window.receiveData(" + JSON.stringify(data) + ");"
-                webView.runJavaScript(jsCode)
+                var jsCode = `window.receiveData(${JSON.stringify(data)});`;
+                webView.runJavaScript(jsCode);
             } else {
-                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:")
+                console.log("HTML이 아직 로드되지 않았습니다. 데이터 무시:");
             }
         }
     }
@@ -85,7 +65,6 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
-
         // 컨텐츠 영역 - 직접 구현한 스크롤
         // ScrollView, Flickable을 사용하면 마우스 드래그 이벤트를 가로채서 3D 모
         Rectangle {
@@ -94,28 +73,26 @@ ColumnLayout {
             Layout.fillHeight: true
             color: "transparent"
             clip: true
-            
+
             property real contentY: 0
             property real contentHeight: columnContent.height
-            
+
             // 스크롤을 위한 MouseArea
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.NoButton
-                
-                onWheel: function(wheel) {
-                    var delta = wheel.angleDelta.y
-                    var newContentY = parent.contentY - delta / 3
-                    
+
+                onWheel: function (wheel) {
+                    var delta = wheel.angleDelta.y;
+                    var newContentY = parent.contentY - delta / 3;
+
                     // 경계값 체크
-                    var maxContentY = Math.max(0, parent.contentHeight - parent.height)
-                    parent.contentY = Math.max(0, Math.min(maxContentY, newContentY))
-                    
-                    console.log("Custom scroll - contentY:", parent.contentY, "delta:", delta)
-                    wheel.accepted = true
+                    var maxContentY = Math.max(0, parent.contentHeight - parent.height);
+                    parent.contentY = Math.max(0, Math.min(maxContentY, newContentY));
+
+                    wheel.accepted = true;
                 }
             }
-            
 
             ColumnLayout {
                 id: columnContent
@@ -146,13 +123,13 @@ ColumnLayout {
                     Item {
                         Layout.fillWidth: true
                     }
-                    
+
                     CheckBox {
                         id: fixedCoordinateCheckBox
                         text: "고정좌표계 표시"
                         checked: true
                         Material.accent: "#33803F"
-                        
+
                         contentItem: Text {
                             text: fixedCoordinateCheckBox.text
                             color: "#dddddd"
@@ -160,19 +137,18 @@ ColumnLayout {
                             leftPadding: fixedCoordinateCheckBox.indicator.width + fixedCoordinateCheckBox.spacing
                             verticalAlignment: Text.AlignVCenter
                         }
-                        
+
                         onCheckedChanged: {
-                            console.log("고정좌표계 표시:", checked)
-                            attitudeOverviewRoot.showFixedAxes = checked
+                            attitudeOverviewRoot.showFixedAxes = checked;
                         }
                     }
-                    
+
                     CheckBox {
                         id: auxiliaryCoordinateCheckBox
                         text: "보조좌표계 표시"
                         checked: true
                         Material.accent: "#33803F"
-                        
+
                         contentItem: Text {
                             text: auxiliaryCoordinateCheckBox.text
                             color: "#dddddd"
@@ -180,59 +156,58 @@ ColumnLayout {
                             leftPadding: auxiliaryCoordinateCheckBox.indicator.width + auxiliaryCoordinateCheckBox.spacing
                             verticalAlignment: Text.AlignVCenter
                         }
-                        
+
                         onCheckedChanged: {
-                            console.log("보조좌표계 표시:", checked)
-                            attitudeOverviewRoot.showHelperAxes = checked
+                            attitudeOverviewRoot.showHelperAxes = checked;
                         }
                     }
                 }
-                
+
                 // 그래프 영역
                 Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 450 * 2 // 그래프 개수
                     Layout.topMargin: 30
-                    
+
                     WebEngineView {
                         id: webView
                         anchors.fill: parent
                         url: Qt.resolvedUrl("../../../components/uplot/stream-data.html")
                         // url: "src:/pages/setup/attitude-overview/uplot/stream-data.html"
 
-                        onLoadingChanged: function(loadRequest) {
+                        onLoadingChanged: function (loadRequest) {
                             if (loadRequest.status === WebEngineView.LoadFailedStatus) {
-                                console.log("Failed to load:", loadRequest.errorString)
-                                attitudeOverviewRoot.htmlLoaded = false
+                                console.log("Failed to load:", loadRequest.errorString);
+                                attitudeOverviewRoot.htmlLoaded = false;
                             } else if (loadRequest.status === WebEngineView.LoadSucceededStatus) {
-                                console.log("Successfully loaded HTML file")
-                                attitudeOverviewRoot.htmlLoaded = true
+                                console.log("Successfully loaded HTML file");
+                                attitudeOverviewRoot.htmlLoaded = true;
                             }
                         }
 
-                        onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
-                            console.log("JS Console:", message)
+                        onJavaScriptConsoleMessage: function (level, message, lineNumber, sourceID) {
+                            console.log("JS Console:", message);
                         }
                     }
-                    
+
                     // 마우스 휠 이벤트를 스크롤로 전달
                     MouseArea {
                         anchors.fill: parent
                         acceptedButtons: Qt.NoButton
-                        
-                        onWheel: function(wheel) {
-                            var delta = wheel.angleDelta.y
-                            var newContentY = customScrollArea.contentY - delta / 3
-                            
+
+                        onWheel: function (wheel) {
+                            var delta = wheel.angleDelta.y;
+                            var newContentY = customScrollArea.contentY - delta / 3;
+
                             // 경계값 체크
-                            var maxContentY = Math.max(0, customScrollArea.contentHeight - customScrollArea.height)
-                            customScrollArea.contentY = Math.max(0, Math.min(maxContentY, newContentY))
-                            
-                            wheel.accepted = true
+                            var maxContentY = Math.max(0, customScrollArea.contentHeight - customScrollArea.height);
+                            customScrollArea.contentY = Math.max(0, Math.min(maxContentY, newContentY));
+
+                            wheel.accepted = true;
                         }
                     }
                 }
-            } 
+            }
         }
     }
 }
