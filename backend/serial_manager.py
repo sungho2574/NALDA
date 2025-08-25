@@ -10,7 +10,6 @@ from .lib.xmlHandler import XmlHandler
 
 # QML과 통신을 담당할 백엔드 클래스
 class SerialManager(QObject):
-    connectionResult = Signal(bool, str)  # (성공여부, 메시지)
     messageUpdated = Signal(int, dict)  # 메시지 업데이트 시그널
 
     def __init__(self, parent=None):
@@ -30,6 +29,8 @@ class SerialManager(QObject):
         self.latest_data = {}
         self.message_list = []
 
+        self.data_reading_thread_stop_flag = threading.Event()
+
     # QML에서 호출할 수 있는 슬롯 (포트 목록 전달)
     @Slot(result=list)
     def getPortList(self):
@@ -44,14 +45,14 @@ class SerialManager(QObject):
         return self.port_list
 
     # QML에서 '연결' 버튼을 누르면 호출될 슬롯
-    @Slot(str, int)
-    def connectButtonClicked(self, device: str, baudrate: int):
+    @Slot(str, int, result=bool)
+    def connectSerial(self, device: str, baudrate: int):
         if not device:
             print("오류: 포트가 선택되지 않았습니다.")
-            self.connectionResult.emit(False, "포트가 선택되지 않았습니다.")
-            return
-
-        print(f"Port: {device}, Baud rate: {baudrate}")
+            return False
+        if self.port is not None or self.baudrate is not None:
+            print("이미 연결된 포트가 있습니다. 먼저 연결을 해제하세요.")
+            return False
 
         try:
             # 센서 연결
@@ -65,19 +66,41 @@ class SerialManager(QObject):
             self.message_list = self.getMessageList()
 
             # 데이터 읽기 스레드 시작
+            self.data_reading_thread_stop_flag = threading.Event()
             self.data_reading_thread = threading.Thread(target=self._get_sensor_data, daemon=True)
             self.data_reading_thread.start()
 
-            # 연결 성공 시 QML 변화 trigger
-            self.connectionResult.emit(True, f"{device} : 연결 성공")
+            return True
         except serial.SerialException as e:
             error_msg = f"시리얼 연결 실패: {str(e)}"
             print(error_msg)
-            self.connectionResult.emit(False, error_msg)
+            return False
         except Exception as e:
             error_msg = f"연결 실패: {str(e)}"
             print(error_msg)
-            self.connectionResult.emit(False, error_msg)
+            return False
+
+    @Slot(result=bool)
+    def disconnectSerial(self):
+        # 스레드 종료를 위한 이벤트 설정
+        self.data_reading_thread_stop_flag.set()
+        print("시리얼 연결 해제 중...")
+
+        # 스레드 종료 대기
+        self.data_reading_thread.join()
+        print("데이터 읽기 스레드가 종료되었습니다.")
+
+        # 시리얼 연결 해제
+        res = self.mav.disconnect()
+        print(res)
+        if res:
+            self.port = None
+            self.baudrate = None
+            print("시리얼 연결이 해제되었습니다.")
+            return True
+        else:
+            print("시리얼 연결 해제에 실패했습니다.")
+            return False
 
     def _connect(self, port: str, baudrate: int):
         """
@@ -112,10 +135,11 @@ class SerialManager(QObject):
             current_message_idx = 0
             msg_id = message_id_list[current_message_idx]
             self.mav.chooseMessage(msg_id)
-            while True:
+            while not self.data_reading_thread_stop_flag.is_set():
                 data: list = self.mav.read(enPrint=False, enLog=False)
                 if data:
                     # 데이터 맵핑
+                    print(self.data_reading_thread_stop_flag, self.data_reading_thread_stop_flag.is_set())
                     msg = {}
                     for key, value in zip(message_frame[msg_id], data):
                         msg[key] = value
@@ -132,7 +156,6 @@ class SerialManager(QObject):
             print("[Monitor] 연결 끊김 감지!")
             self.port = None
             self.baudrate = None
-            # self.connectionResult.emit(False, f"{device} : 연결 끊김, 연결 대기 중...")
             return
 
     @Slot(result=dict)

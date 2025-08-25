@@ -15,31 +15,31 @@ ColumnLayout {
 
     Component.onCompleted: {
         // 초기화 작업
-        Qt.callLater(function() {
-            updatePortList()
-            getCurrentConnection()
-        })
+        Qt.callLater(function () {
+            updatePortList();
+            getCurrentConnection();
+        });
     }
 
     // 포트 목록 업데이트 함수
     function updatePortList() {
-        connectSerialRoot.portList = serialManager.getPortList() || []
+        connectSerialRoot.portList = serialManager.getPortList() || [];
     }
 
     // 현재 선택된 포트와 보율을 가져오는 함수
     function getCurrentConnection() {
-        var connection =  serialManager.getCurrentConnection() || {}
+        var connection = serialManager.getCurrentConnection() || {};
         if (connection.port && connection.baudrate) {
-            console.log("현재 연결된 포트:", connection.port)
-            console.log("현재 연결된 보드레이트:", connection.baudrate)
+            console.log("현재 연결된 포트:", connection.port);
+            console.log("현재 연결된 보드레이트:", connection.baudrate);
 
             // 연결 상태 표시
-            connectSerialRoot.connectionStatusVisible = true
-            connectSerialRoot.connectionStatusIsSuccess = true
+            connectSerialRoot.connectionStatusVisible = true;
+            connectSerialRoot.connectionStatusIsSuccess = true;
 
             // 연결된 포트와 보드레이트 설정
-            portComboBox.currentIndex = connectSerialRoot.portList.findIndex(item => item.device === connection.port)
-            baudRateComboBox.currentIndex =baudRateComboBox.model.findIndex(item => item === connection.baudrate)
+            portComboBox.currentIndex = connectSerialRoot.portList.findIndex(item => item.device === connection.port);
+            baudRateComboBox.currentIndex = baudRateComboBox.model.findIndex(item => item === connection.baudrate);
         }
     }
 
@@ -77,72 +77,71 @@ ColumnLayout {
                     textRole: "device"
                     valueRole: "device"
                     currentIndex: 0
-                    
+                    enabled: !connectSerialRoot.connectionStatusIsSuccess
+
                     delegate: ItemDelegate {
                         id: delegateItem
                         width: parent.width
                         height: 50
-                        
+
                         required property var model
                         required property int index
-                        
+
                         background: Rectangle {
                             anchors.fill: parent
                             color: delegateItem.hovered ? "#555555" : "transparent"
                         }
-                        
+
                         Column {
                             anchors.left: parent.left
                             anchors.leftMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 2
-                            
+
                             Text {
                                 text: delegateItem.model.device || ""
                                 color: "#dddddd"
                                 font.pixelSize: 14
                                 font.bold: true
                             }
-                            
+
                             Text {
                                 text: delegateItem.model.description || ""
                                 color: "#999999"
                                 font.pixelSize: 12
                             }
                         }
-                        
+
                         onClicked: {
-                            portComboBox.currentIndex = index
-                            portComboBox.popup.close()
+                            portComboBox.currentIndex = index;
+                            portComboBox.popup.close();
                         }
                     }
-                    
+
                     contentItem: Rectangle {
                         color: "transparent"
-                        
+
                         Column {
                             anchors.left: parent.left
                             anchors.leftMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 2
                             visible: portComboBox.currentIndex >= 0
-                            
+
                             Text {
-                                text: portComboBox.currentIndex >= 0 ? 
-                                      (portComboBox.model[portComboBox.currentIndex]?.device || "") : ""
-                                color: "#dddddd"
+                                text: portComboBox.currentIndex >= 0 ? (portComboBox.model[portComboBox.currentIndex]?.device || "") : ""
+                                color: connectSerialRoot.connectionStatusIsSuccess ? "#999999" : "#dddddd"
                                 font.pixelSize: 14
                                 font.bold: true
                             }
-                            
+
                             Text {
-                                text: portComboBox.currentIndex >= 0 ? 
-                                      (portComboBox.model[portComboBox.currentIndex]?.description || "") : ""
+                                text: portComboBox.currentIndex >= 0 ? (portComboBox.model[portComboBox.currentIndex]?.description || "") : ""
                                 color: "#999999"
                                 font.pixelSize: 12
                             }
                         }
-                        
+
                         Text {
                             text: portComboBox.currentIndex === -1 ? "포트를 선택하세요" : ""
                             color: "#777777"
@@ -163,6 +162,7 @@ ColumnLayout {
                     Layout.alignment: Qt.AlignBottom
                     color: refreshMouseArea.containsMouse ? "#666666" : "#555555"
                     radius: 6
+                    enabled: !connectSerialRoot.connectionStatusIsSuccess
 
                     Image {
                         source: resourceManager.getUrl("assets/icons/serial/refresh.svg")
@@ -177,8 +177,8 @@ ColumnLayout {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
-                            console.log("포트 목록 새로고침")
-                            updatePortList()
+                            console.log("포트 목록 새로고침");
+                            updatePortList();
                         }
                     }
                 }
@@ -203,6 +203,7 @@ ColumnLayout {
                 Layout.preferredHeight: 40
                 model: [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
                 currentIndex: 6
+                enabled: !connectSerialRoot.connectionStatusIsSuccess
             }
         }
 
@@ -213,12 +214,10 @@ ColumnLayout {
                 id: connectButton
                 Layout.preferredHeight: 50
                 Layout.preferredWidth: 300
-                text: connectSerialRoot.connectionLoading ? "연결 중..." : "연결"
+                text: connectSerialRoot.connectionLoading ? "연결/해제 중..." : (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제하기" : "연결하기")
                 enabled: !connectSerialRoot.connectionLoading // 연결 중일 때 비활성화
                 background: Rectangle {
-                    color: connectButton.enabled ? 
-                           (connectButton.hovered ? "#66BB6A" : "#4CAF50") : 
-                           "#4CAF50"  // 비활성화 시 회색
+                    color: connectButton.enabled ? (connectSerialRoot.connectionStatusIsSuccess ? "#D74532" : "#66BB6A") : "#444444"  // 비활성화 시 회색
                     radius: 8
                 }
                 contentItem: Text {
@@ -235,15 +234,15 @@ ColumnLayout {
                     if (portComboBox.currentIndex === -1) {
                         console.log("포트를 선택해주세요.");
                         return;
-                    }  
+                    }
 
                     // 버튼을 연결 중 상태로 변경
-                    connectSerialRoot.connectionLoading = true
-                    connectSerialRoot.connectionStatusVisible = false
+                    connectSerialRoot.connectionLoading = true;
+                    connectSerialRoot.connectionStatusVisible = false;
 
                     // 0.5초 후에 연결 함수 실행
                     // UI 업데이트할 시간 확보
-                    connectionTimer.start()
+                    connectionTimer.start();
                 }
 
                 Timer {
@@ -252,22 +251,25 @@ ColumnLayout {
                     running: false
                     repeat: false
                     onTriggered: {
-                        // 선택된 항목의 데이터와 보율을 인자로 전달
-                        serialManager.connectButtonClicked(
-                            portComboBox.model[portComboBox.currentIndex].device,
-                            baudRateComboBox.currentValue
-                        )
-                    }
-                }
+                        if (connectSerialRoot.connectionStatusIsSuccess) {
+                            // 연결 해제
+                            console.log("연결 해제 중...");
+                            var res = serialManager.disconnectSerial();
+                            if (res) {
+                                console.log("연결이 해제되었습니다.");
+                                connectSerialRoot.connectionStatusIsSuccess = false;
+                            } else {
+                                console.log("연결 해제에 실패했습니다.");
+                            }
+                            connectSerialRoot.connectionLoading = false; // 버튼을 연결 완료 상태로 변경
+                        } else {
+                            // 선택된 항목의 데이터와 보율을 인자로 전달
+                            var is_success = serialManager.connectSerial(portComboBox.model[portComboBox.currentIndex].device, baudRateComboBox.currentValue);
 
-                Connections {
-                    target: serialManager
-                    function onConnectionResult(is_success, message) {
-                        connectSerialRoot.connectionStatusVisible = true
-                        connectSerialRoot.connectionStatusIsSuccess = is_success
-
-                        // 버튼을 연결 완료 상태로 변경
-                        connectSerialRoot.connectionLoading = false
+                            connectSerialRoot.connectionStatusVisible = true;
+                            connectSerialRoot.connectionStatusIsSuccess = is_success;
+                            connectSerialRoot.connectionLoading = false; // 버튼을 연결 완료 상태로 변경
+                        }
                     }
                 }
             }
@@ -276,7 +278,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                visible: connectSerialRoot.connectionStatusVisible
+                visible: connectSerialRoot.connectionStatusVisible && !connectSerialRoot.connectionStatusIsSuccess
 
                 Image {
                     source: connectSerialRoot.connectionStatusIsSuccess ? resourceManager.getUrl("assets/icons/serial/check_circle.svg") : resourceManager.getUrl("assets/icons/serial/block.svg")
@@ -296,5 +298,7 @@ ColumnLayout {
     }
 
     // 여백
-    Item { Layout.fillHeight: true }
+    Item {
+        Layout.fillHeight: true
+    }
 }

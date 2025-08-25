@@ -13,9 +13,6 @@ from backend.pfd_maganer import PFDManager
 
 from backend.utils import resource_path
 
-from windows.manual_gps_window import ManualGpsWindow
-from windows.location_history_window import LocationHistoryWindow
-
 
 class DockableWidget(QWidget):
     """도킹 가능한 위젯 클래스"""
@@ -68,11 +65,6 @@ class MainWindow(QMainWindow):
         self.dock_area_width = self.width() - 80
         self.set_dock_width(self.dock_area_width)
 
-        # 서브 위젯 추가
-        # self.set_sub_widget()
-        # self.manual_gps_window = ManualGpsWindow(self.gps_manager)
-        # manual_gps_window.show()
-
         # 전체화면으로 변경
         # 마지막에 호출해야 레이아웃이 제대로 적용됨
         self.showMaximized()
@@ -92,11 +84,6 @@ class MainWindow(QMainWindow):
     def setup_central_widget(self):
         """중앙 위젯 설정"""
 
-        central_widget = QQuickWidget()
-        qml_file = resource_path("src/main.qml")
-        central_widget.setSource(QUrl.fromLocalFile(qml_file))
-        central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
-
         # QML 컨텍스트
         self.tooltip_manager = TooltipManager()
         self.dock_manager = DockManager(self)
@@ -115,6 +102,7 @@ class MainWindow(QMainWindow):
         self.serial_manager.messageUpdated.connect(self.pfd_manager.get_data)
         # self.serial_manager.messageUpdated.connect(self.gps_backend.get_data) # gps도 연결 필요
 
+        central_widget = QQuickWidget()
         context = central_widget.rootContext()
         context.setContextProperty("tooltipManager", self.tooltip_manager)
         context.setContextProperty("dockManager", self.dock_manager)
@@ -124,6 +112,9 @@ class MainWindow(QMainWindow):
         context.setContextProperty("attitudeOverviewManager", self.attitude_overview_manager)
         context.setContextProperty("resourceManager", self.resource_manager)
 
+        qml_file = resource_path("src/main.qml")
+        central_widget.setSource(QUrl.fromLocalFile(qml_file))
+        central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
         self.setCentralWidget(central_widget)
 
     def setup_dock_widgets(self):
@@ -157,6 +148,7 @@ class MainWindow(QMainWindow):
             title='ND',
             qml_path='src/pages/flight/nd/index.qml',
             managers=[
+                ('resourceManager', self.resource_manager),
                 ('gpsManager', self.gps_manager),
             ]
         )
@@ -300,9 +292,3 @@ class MainWindow(QMainWindow):
         if self.dock_area_visible:
             self.dock_area_width = self.width() - 80
             self.set_dock_width(self.dock_area_width)
-
-    def set_sub_widget(self):
-        """서브 위젯 설정"""
-        self.location_sub_widget = LocationHistoryWindow(self.gps_manager)
-        self.location_sub_widget.show()
-        print('Location History window opened.')
