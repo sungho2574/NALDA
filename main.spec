@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
+# 소스 파일 포함
 datas = [
     ('backend', 'backend'),
     ('src', 'src'),
@@ -35,10 +35,17 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    # console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['src/assets/app.ico'],
+)
+app = BUNDLE(
+    exe,
+    name='NALDA.app',
+    icon='src/assets/app.ico',
+    bundle_identifier=None,
 )
