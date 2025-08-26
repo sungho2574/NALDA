@@ -235,8 +235,8 @@ class MainWindow(QMainWindow):
             # 최소 크기 제한
             for dock in self.docks:
                 if dock.widget():
-                    dock.widget().setMinimumWidth(200)
-                    dock.widget().setMinimumHeight(200)
+                    dock.widget().setMinimumWidth(100)
+                    dock.widget().setMinimumHeight(100)
 
             # 사분할 배치
             # 상단과 하단 도크들을 각각 조정
