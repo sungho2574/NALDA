@@ -1,8 +1,9 @@
 import os
 import sys
 
-from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFontDatabase, QFont
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QSplashScreen
+from PySide6.QtGui import QFontDatabase, QFont, QPixmap
 
 from windows.main_window import MainWindow
 from backend.utils import resource_path
@@ -14,7 +15,7 @@ os.environ['QT_QUICK_CONTROLS_STYLE'] = 'Material'  # QML 스타일 설정 (Mate
 
 
 def set_font(app):
-    """전역 폰트 설정"""
+    """메인 위젯뿐만 아니라 서브 위젯들도 동일한 폰트를 사용하도록 전역 폰트 설정"""
 
     font_path = resource_path("src/assets/fonts/PretendardVariable.ttf")
     font_id = QFontDatabase.addApplicationFont(font_path)
@@ -30,12 +31,18 @@ def main():
     app = QApplication(sys.argv)
 
     # 전역 폰트 설정
-    # 메인 위젯뿐만 아니라 서브 위젯들도 동일한 폰트를 사용하도록 설정
     set_font(app)
+
+    # # 스플래시 스크린 표시
+    splash_pixmap = QPixmap(resource_path("src/assets/splash.png")).scaled(544, 308, Qt.KeepAspectRatio)
+    splash = QSplashScreen(splash_pixmap)
+    splash.show()
+    app.processEvents()
 
     # 메인 윈도우
     window = MainWindow()
     window.show()
+    splash.finish(window)
 
     sys.exit(app.exec())
 
