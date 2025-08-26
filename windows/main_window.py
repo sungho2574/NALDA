@@ -51,8 +51,8 @@ class MainWindow(QMainWindow):
         # 중앙 위젯 설정
         self.setup_central_widget()
 
-        # 메뉴바 설정
-        self.setup_menu_bar()
+        # 단축키 설정
+        self.setup_shortcuts()
 
         # 윈도우 크기 변경 이벤트 설정
         self.resizeEvent = self.on_resize
@@ -196,28 +196,16 @@ class MainWindow(QMainWindow):
                              QDockWidget.DockWidgetFloatable |
                              QDockWidget.DockWidgetClosable)
 
-    def setup_menu_bar(self):
-        """메뉴바 설정"""
-        menubar = self.menuBar()
-        menubar.setNativeMenuBar(True)  # macOS에서 시스템 메뉴바 허용
+    def setup_shortcuts(self):
+        """단축키만 설정"""
+        from PySide6.QtGui import QKeySequence, QShortcut
+        # Ctrl+R로 레이아웃 복원
+        reset_shortcut = QShortcut(QKeySequence('Ctrl+R'), self)
+        reset_shortcut.activated.connect(self.reset_dock_layout)
 
-        # 보기 메뉴
-        view_menu = menubar.addMenu('보기')
-
-        # 레이아웃 복원 액션
-        reset_layout_action = view_menu.addAction('레이아웃 복원 (Ctrl+R)')
-        reset_layout_action.setShortcut('Ctrl+R')
-        reset_layout_action.triggered.connect(self.reset_dock_layout)
-
-        view_menu.addSeparator()
-
-        # 파일 메뉴
-        file_menu = menubar.addMenu('파일')
-
-        # 종료 액션
-        exit_action = file_menu.addAction('종료 (ESC)')
-        exit_action.setShortcut('ESC')
-        exit_action.triggered.connect(self.close)
+        # ESC로 종료
+        exit_shortcut = QShortcut(QKeySequence('ESC'), self)
+        exit_shortcut.activated.connect(self.close)
 
     def toggle_dock_area(self):
         """도크 영역 토글"""
