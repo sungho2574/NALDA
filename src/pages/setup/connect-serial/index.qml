@@ -55,7 +55,7 @@ ColumnLayout {
                     textRole: "device"
                     valueRole: "device"
                     currentIndex: 0
-                    enabled: !connectSerialRoot.connectionStatusIsSuccess
+                    enabled: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading)
 
                     delegate: ItemDelegate {
                         id: delegateItem
@@ -108,7 +108,7 @@ ColumnLayout {
 
                             Text {
                                 text: portComboBox.currentIndex >= 0 ? (portComboBox.model[portComboBox.currentIndex]?.device || "") : ""
-                                color: connectSerialRoot.connectionStatusIsSuccess ? "#999999" : "#dddddd"
+                                color: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading) ? "#dddddd" : "#999999"
                                 font.pixelSize: 14
                                 font.bold: true
                             }
@@ -140,7 +140,7 @@ ColumnLayout {
                     Layout.alignment: Qt.AlignBottom
                     color: refreshMouseArea.containsMouse ? "#666666" : "#555555"
                     radius: 6
-                    enabled: !connectSerialRoot.connectionStatusIsSuccess
+                    enabled: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading)
 
                     Image {
                         source: resourceManager.getUrl("assets/icons/serial/refresh.svg")
@@ -180,7 +180,7 @@ ColumnLayout {
                 Layout.preferredHeight: 40
                 model: [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
                 currentIndex: 6
-                enabled: !connectSerialRoot.connectionStatusIsSuccess
+                enabled: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading)
             }
         }
 

@@ -8,50 +8,53 @@ from .lib.MiniLink import MiniLink
 from .lib.xmlHandler import XmlHandler
 
 
-# QML과 통신을 담당할 백엔드 클래스
 class SerialManager(QObject):
+    """
+    QML과 통신을 담당할 백엔드 클래스
+    """
+
     messageUpdated = Signal(int, dict)  # 메시지 업데이트 시그널
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.port_list = []
-        self.monitor_thread = None
-        self.monitoring = False
-
-        self.port = None  # 현재 연결된 포트
+        self.port = None      # 현재 연결된 포트
         self.baudrate = None  # 현재 연결된 보드레이트
 
         self.mav = MiniLink()
         self.data_reading_thread = None
+        self.data_reading_thread_stop_flag = threading.Event()
 
         self.xmlHandler = XmlHandler()
         self.xmlHandler.loadMessageListFromXML({})
-        self.latest_data = {}
         self.message_list = []
+        self.latest_data = {}
 
-        self.data_reading_thread_stop_flag = threading.Event()
-
-    # QML에서 호출할 수 있는 슬롯 (포트 목록 전달)
     @Slot(result=list)
     def getPortList(self):
-        self.port_list.clear()
-        ports = serial.tools.list_ports.comports()
-        for port in ports:
-            self.port_list.append({
+        """
+        QML에서 호출할 수 있는 슬롯 (포트 목록 전달)
+        """
+
+        port_list = []
+        for port in serial.tools.list_ports.comports():
+            port_list.append({
                 'device': port.device,
                 'description': port.description,
             })
 
-        return self.port_list
+        return port_list
 
-    # QML에서 '연결' 버튼을 누르면 호출될 슬롯
     @Slot(str, int, result=bool)
     def connectSerial(self, device: str, baudrate: int):
-        if not device:
-            print("오류: 포트가 선택되지 않았습니다.")
+        """
+        QML에서 연결 버튼을 누르면 호출될 슬롯
+        """
+
+        if not device or not baudrate:
+            print("오류: 포트 혹은 보율이 선택되지 않았습니다.")
             return False
         if self.port is not None or self.baudrate is not None:
-            print("이미 연결된 포트가 있습니다. 먼저 연결을 해제하세요.")
+            print("이미 연결된 포트가 있습니다.")
             return False
 
         try:
@@ -63,6 +66,7 @@ class SerialManager(QObject):
             self.port = device
             self.baudrate = baudrate
 
+            # 메시지 목록 가져오기
             self.message_list = self.getMessageList()
 
             # 데이터 읽기 스레드 시작
@@ -82,17 +86,18 @@ class SerialManager(QObject):
 
     @Slot(result=bool)
     def disconnectSerial(self):
+        """
+        시리얼 연결 해제 슬롯
+        """
+
         # 스레드 종료를 위한 이벤트 설정
         self.data_reading_thread_stop_flag.set()
-        print("시리얼 연결 해제 중...")
 
         # 스레드 종료 대기
         self.data_reading_thread.join()
-        print("데이터 읽기 스레드가 종료되었습니다.")
 
         # 시리얼 연결 해제
         res = self.mav.disconnect()
-        print(res)
         if res:
             self.port = None
             self.baudrate = None
@@ -107,6 +112,7 @@ class SerialManager(QObject):
         센서와 연결을 시도합니다.
         예외가 발생하면 상위 클래스에서 처리하도록 합니다.
         """
+
         self.mav.connect(port, baudrate)
 
         # 연결 확인 코드
@@ -139,7 +145,6 @@ class SerialManager(QObject):
                 data: list = self.mav.read(enPrint=False, enLog=False)
                 if data:
                     # 데이터 맵핑
-                    print(self.data_reading_thread_stop_flag, self.data_reading_thread_stop_flag.is_set())
                     msg = {}
                     for key, value in zip(message_frame[msg_id], data):
                         msg[key] = value
@@ -160,6 +165,10 @@ class SerialManager(QObject):
 
     @Slot(result=dict)
     def getCurrentConnection(self):
+        """
+        현재 연결된 시리얼 포트 정보를 반환합니다.
+        """
+
         return {
             'port': self.port,
             'baudrate': self.baudrate
@@ -170,6 +179,7 @@ class SerialManager(QObject):
         """
         현재 연결된 센서의 메시지 목록을 반환합니다.
         """
+
         message_list = []
         for key, value in self.mav.getMessageList().items():
             name = value[0]
