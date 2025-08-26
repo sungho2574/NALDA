@@ -428,7 +428,7 @@ Rectangle {
         id: headingTape
         width: parent.width
         height: 48
-        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         z: 100
         // 눈금 표시
@@ -516,8 +516,8 @@ Rectangle {
                             label = "NW";
                         else if (normalizedDeg % 30 === 0)
                             label = normalizedDeg.toString();
-                            // 30도 배수는 숫자로
                         else
+                            // 30도 배수는 숫자로
                             label = normalizedDeg.toString(); // 나머지 15도 간격도 숫자로 표시
 
                         ctx.fillText(label, x, 36);
@@ -552,10 +552,10 @@ Rectangle {
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(Math.round(pfdRoot.heading).toString().padStart(3, '0'), centerX, boxHeight + boxHeight / 2);
-                // 하단 구분선
+                // 상단 구분선
                 ctx.beginPath();
-                ctx.moveTo(0, height - 1);
-                ctx.lineTo(width, height - 1);
+                ctx.moveTo(0, 1);
+                ctx.lineTo(width, 1);
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 2;
                 ctx.stroke();
@@ -564,14 +564,14 @@ Rectangle {
     }
 
     // 시뮬레이션 토글 버튼 (우측 상단)
-    Button {
-        id: simToggleBtn
-        text: "시뮬레이션 시작/정지"
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        anchors.bottomMargin: 16
-        anchors.rightMargin: 16
-        z: 200
-        onClicked: pfdManager.toggleSimulation()
-    }
+    // Button {
+    //     id: simToggleBtn
+    //     text: "시뮬레이션 시작/정지"
+    //     anchors.top: parent.top
+    //     anchors.right: parent.right
+    //     anchors.bottomMargin: 16
+    //     anchors.rightMargin: 16
+    //     z: 200
+    //     onClicked: pfdManager.toggleSimulation()
+    // }
 }

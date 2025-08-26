@@ -23,14 +23,14 @@ Rectangle {
 
     // 카메라 타입 변경 시 로그 출력
     onCameraTypeChanged: {
-        console.log("카메라 전환:", cameraType === "forward" ? "전방 카메라" : "하방 카메라")
-        console.log("스트림 URL:", streamUrl)
+        console.log("카메라 전환:", cameraType === "forward" ? "전방 카메라" : "하방 카메라");
+        console.log("스트림 URL:", streamUrl);
     }
 
     // 영상 및 오버레이 UI
     Rectangle {
         anchors.fill: parent
-        color: "#000000" 
+        color: "#000000"
         radius: 8
 
         // 실제 영상 출력
@@ -46,10 +46,15 @@ Rectangle {
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.margins: 10
-            width: 10; height: 10
+            width: 10
+            height: 10
             radius: 5
             color: videoDisplay.playbackState === Video.PlayingState ? "#4CAF50" : "#F44336"
-            Behavior on color { ColorAnimation { duration: 300 } }
+            Behavior on color {
+                ColorAnimation {
+                    duration: 300
+                }
+            }
         }
 
         // 카메라 전환 버튼 오버레이
@@ -59,16 +64,15 @@ Rectangle {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
             width: 160
-            height: 40
+            height: 45
             radius: 8
             color: "#222222"
             opacity: 0.7
             z: 2
 
             RowLayout {
-                anchors.fill: parent
+                anchors.centerIn: parent
                 anchors.margins: 5
-                spacing: 10
 
                 // 전방 카메라 선택 버튼
                 Button {
@@ -77,8 +81,8 @@ Rectangle {
                     Layout.fillWidth: true
                     highlighted: videoStream.cameraType === "forward"
                     onClicked: {
-                        videoStream.cameraType = "forward"
-                        console.log("전방 카메라 버튼 클릭됨")
+                        videoStream.cameraType = "forward";
+                        console.log("전방 카메라 버튼 클릭됨");
                     }
                     background: Rectangle {
                         color: forwardButton.highlighted ? "#4CAF50" : "#555555"
@@ -101,8 +105,8 @@ Rectangle {
                     Layout.fillWidth: true
                     highlighted: videoStream.cameraType === "downward"
                     onClicked: {
-                        videoStream.cameraType = "downward"
-                        console.log("하방 카메라 버튼 클릭됨")
+                        videoStream.cameraType = "downward";
+                        console.log("하방 카메라 버튼 클릭됨");
                     }
                     background: Rectangle {
                         color: downwardButton.highlighted ? "#4CAF50" : "#555555"
