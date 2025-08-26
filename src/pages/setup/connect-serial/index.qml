@@ -21,28 +21,6 @@ ColumnLayout {
         });
     }
 
-    // 포트 목록 업데이트 함수
-    function updatePortList() {
-        connectSerialRoot.portList = serialManager.getPortList() || [];
-    }
-
-    // 현재 선택된 포트와 보율을 가져오는 함수
-    function getCurrentConnection() {
-        var connection = serialManager.getCurrentConnection() || {};
-        if (connection.port && connection.baudrate) {
-            console.log("현재 연결된 포트:", connection.port);
-            console.log("현재 연결된 보드레이트:", connection.baudrate);
-
-            // 연결 상태 표시
-            connectSerialRoot.connectionStatusVisible = true;
-            connectSerialRoot.connectionStatusIsSuccess = true;
-
-            // 연결된 포트와 보드레이트 설정
-            portComboBox.currentIndex = connectSerialRoot.portList.findIndex(item => item.device === connection.port);
-            baudRateComboBox.currentIndex = baudRateComboBox.model.findIndex(item => item === connection.baudrate);
-        }
-    }
-
     Text {
         text: "보드 연결"
         color: "#dddddd"
@@ -177,7 +155,6 @@ ColumnLayout {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
-                            console.log("포트 목록 새로고침");
                             updatePortList();
                         }
                     }
@@ -214,7 +191,7 @@ ColumnLayout {
                 id: connectButton
                 Layout.preferredHeight: 50
                 Layout.preferredWidth: 300
-                text: connectSerialRoot.connectionLoading ? "연결/해제 중..." : (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제하기" : "연결하기")
+                text: connectSerialRoot.connectionLoading ? (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제 중..." : "연결 중...") : (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제하기" : "연결하기")
                 enabled: !connectSerialRoot.connectionLoading // 연결 중일 때 비활성화
                 background: Rectangle {
                     color: connectButton.enabled ? (connectSerialRoot.connectionStatusIsSuccess ? "#D74532" : "#66BB6A") : "#444444"  // 비활성화 시 회색
@@ -229,7 +206,6 @@ ColumnLayout {
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                // 버튼 클릭 시 Python의 connect_button_clicked 함수 호출
                 onClicked: {
                     if (portComboBox.currentIndex === -1) {
                         console.log("포트를 선택해주세요.");
@@ -253,7 +229,6 @@ ColumnLayout {
                     onTriggered: {
                         if (connectSerialRoot.connectionStatusIsSuccess) {
                             // 연결 해제
-                            console.log("연결 해제 중...");
                             var res = serialManager.disconnectSerial();
                             if (res) {
                                 console.log("연결이 해제되었습니다.");
@@ -261,14 +236,14 @@ ColumnLayout {
                             } else {
                                 console.log("연결 해제에 실패했습니다.");
                             }
-                            connectSerialRoot.connectionLoading = false; // 버튼을 연결 완료 상태로 변경
+                            connectSerialRoot.connectionLoading = false; // 로딩 끝
                         } else {
                             // 선택된 항목의 데이터와 보율을 인자로 전달
                             var is_success = serialManager.connectSerial(portComboBox.model[portComboBox.currentIndex].device, baudRateComboBox.currentValue);
 
                             connectSerialRoot.connectionStatusVisible = true;
                             connectSerialRoot.connectionStatusIsSuccess = is_success;
-                            connectSerialRoot.connectionLoading = false; // 버튼을 연결 완료 상태로 변경
+                            connectSerialRoot.connectionLoading = false; // 로딩 끝
                         }
                     }
                 }
@@ -278,7 +253,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                visible: connectSerialRoot.connectionStatusVisible && !connectSerialRoot.connectionStatusIsSuccess
+                visible: connectSerialRoot.connectionStatusVisible
 
                 Image {
                     source: connectSerialRoot.connectionStatusIsSuccess ? resourceManager.getUrl("assets/icons/serial/check_circle.svg") : resourceManager.getUrl("assets/icons/serial/block.svg")
@@ -300,5 +275,27 @@ ColumnLayout {
     // 여백
     Item {
         Layout.fillHeight: true
+    }
+
+    // 포트 목록 업데이트 함수
+    function updatePortList() {
+        connectSerialRoot.portList = serialManager.getPortList() || [];
+    }
+
+    // 현재 선택된 포트와 보율을 가져오는 함수
+    function getCurrentConnection() {
+        var connection = serialManager.getCurrentConnection() || {};
+        if (connection.port && connection.baudrate) {
+            console.log("현재 연결된 포트:", connection.port);
+            console.log("현재 연결된 보드레이트:", connection.baudrate);
+
+            // 연결 상태 표시
+            connectSerialRoot.connectionStatusVisible = true;
+            connectSerialRoot.connectionStatusIsSuccess = true;
+
+            // 연결된 포트와 보드레이트 설정
+            portComboBox.currentIndex = connectSerialRoot.portList.findIndex(item => item.device === connection.port);
+            baudRateComboBox.currentIndex = baudRateComboBox.model.findIndex(item => item === connection.baudrate);
+        }
     }
 }

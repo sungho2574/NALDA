@@ -119,7 +119,7 @@ class SerialManager(QObject):
             if data:
                 print("연결 성공")
                 break
-            if time.time() - start_time > 3:  # 3초 동안 데이터가 없으면 연결 실패로 간주
+            if time.time() - start_time > 2:  # 2초 동안 데이터가 없으면 연결 실패로 간주
                 print("연결 실패")
                 raise serial.SerialException("연결 실패: 데이터 수신 대기 시간 초과")
 
