@@ -65,6 +65,29 @@ class MiniLink():
             print(exc_type, fname, exc_tb.tb_lineno)
             exit()
 
+    def disconnect(self):
+        '''
+        # unconnect()
+        장치와의 연결을 해제한다.
+
+        Returns :
+            1 - 성공
+            0 - 실패
+        '''
+
+        try:
+            if self.ser:
+                self.ser.close()
+                self.ser = None
+                print(f"[{CLI_NAME}] Disconnected")
+            return 1
+
+        except Exception as err:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+            return 0
+
     def chooseMessage(self, id: int):
         '''
         # chooseMessage()
@@ -83,7 +106,7 @@ class MiniLink():
             print(f"[{CLI_NAME}] invaild message id")
             return 1
 
-        print(self.xmlHandler.getMessageColumnNames(id))
+        # print(self.xmlHandler.getMessageColumnNames(id))
         self.__MSG_ID = id
 
         return 0
