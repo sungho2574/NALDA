@@ -32,27 +32,40 @@ NALDA/
 
 1. 가상 환경 생성
 
-```bash
-python venv -p 3.12.11
-```
+   ```bash
+   python venv -p 3.12.11
+   ```
 
 2. 가상 환경 활성화
 
-```bash
-.\venv\Scripts\activate
-```
+   ```bash
+   .\venv\Scripts\activate
+   ```
 
 3. 의존성 설치
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+   or
+
+   ```bash
+   pip install PySide6 numpy pyserial pyinstaller
+   ```
 
 ### 실행
 
-```bash
-python main.py
-```
+1. 가상 환경 활성화
+
+   ```bash
+   .\venv\Scripts\activate
+   ```
+
+2. 실행
+   ```bash
+   python main.py
+   ```
 
 ## 빌드 방법
 
