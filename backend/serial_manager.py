@@ -1,4 +1,5 @@
 import time
+import struct
 import threading
 import serial.tools.list_ports
 
@@ -190,3 +191,13 @@ class SerialManager(QObject):
                 'fields': fields
             })
         return message_list
+
+    @Slot(int, list, bool)
+    def send_message(self, msg_id: int, data: list, is_float: bool):
+        try:
+            if is_float:
+                data = list(struct.pack("<" + "f" * len(data), *data))
+            self.mav.send([msg_id, data])
+            print(f"메시지 {msg_id} 전송 성공: {data}")
+        except Exception as e:
+            print(f"메시지 전송 실패: {str(e)}")

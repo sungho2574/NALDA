@@ -1,6 +1,7 @@
 from PySide6.QtCore import QUrl, Qt
 from PySide6.QtWidgets import QMainWindow, QDockWidget, QWidget, QVBoxLayout
 from PySide6.QtQuickWidgets import QQuickWidget
+from PySide6.QtGui import QKeySequence, QShortcut
 
 from backend.sensor_graph_manager import SensorGraphManager
 from backend.attitude_overview_manger import AttitudeOverviewManager
@@ -46,30 +47,30 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("NALDA")
 
         # 스타일시트 로드
-        self.load_stylesheet()
+        self._load_stylesheet()
 
         # 중앙 위젯 설정
-        self.setup_central_widget()
+        self._setup_central_widget()
 
         # 단축키 설정
-        self.setup_shortcuts()
+        self._setup_shortcuts()
 
         # 윈도우 크기 변경 이벤트 설정
-        self.resizeEvent = self.on_resize
+        self.resizeEvent = self._on_resize
 
         # 도크 위젯들 생성
-        self.setup_dock_widgets()
+        self._setup_dock_widgets()
 
         # 도크 영역 초기 상태 설정
         self.dock_area_visible = True
         self.dock_area_width = self.width() - 80
-        self.set_dock_width(self.dock_area_width)
+        self._set_dock_width(self.dock_area_width)
 
         # 전체화면으로 변경
         # 마지막에 호출해야 레이아웃이 제대로 적용됨
         self.showMaximized()
 
-    def load_stylesheet(self):
+    def _load_stylesheet(self):
         """스타일시트 파일 로드"""
         try:
             stylesheet_path = resource_path("src/styles.qss")
@@ -81,7 +82,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"스타일시트 로드 중 오류 발생: {e}")
 
-    def setup_central_widget(self):
+    def _setup_central_widget(self):
         """중앙 위젯 설정"""
 
         # QML 컨텍스트
@@ -102,6 +103,9 @@ class MainWindow(QMainWindow):
         self.serial_manager.messageUpdated.connect(self.pfd_manager.get_data)
         # self.serial_manager.messageUpdated.connect(self.gps_backend.get_data) # gps도 연결 필요
 
+        # send 이벤트
+        self.attitude_overview_manager.newPidGains.connect(self.serial_manager.send_message)
+
         central_widget = QQuickWidget()
         context = central_widget.rootContext()
         context.setContextProperty("tooltipManager", self.tooltip_manager)
@@ -117,7 +121,25 @@ class MainWindow(QMainWindow):
         central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
         self.setCentralWidget(central_widget)
 
-    def setup_dock_widgets(self):
+    def _setup_shortcuts(self):
+        """단축키만 설정"""
+
+        # Ctrl+R로 레이아웃 복원
+        reset_shortcut = QShortcut(QKeySequence('Ctrl+R'), self)
+        reset_shortcut.activated.connect(self._reset_dock_layout)
+
+        # ESC로 종료
+        exit_shortcut = QShortcut(QKeySequence('ESC'), self)
+        exit_shortcut.activated.connect(self.close)
+
+    def _on_resize(self, event):
+        """윈도우 크기 변경 시 도크 영역 너비 조정"""
+        super().resizeEvent(event)
+        if self.dock_area_visible:
+            self.dock_area_width = self.width() - 80
+            self._set_dock_width(self.dock_area_width)
+
+    def _setup_dock_widgets(self):
         """도크 위젯들 설정"""
 
         # 상단 왼쪽 도크
@@ -196,17 +218,6 @@ class MainWindow(QMainWindow):
                              QDockWidget.DockWidgetFloatable |
                              QDockWidget.DockWidgetClosable)
 
-    def setup_shortcuts(self):
-        """단축키만 설정"""
-        from PySide6.QtGui import QKeySequence, QShortcut
-        # Ctrl+R로 레이아웃 복원
-        reset_shortcut = QShortcut(QKeySequence('Ctrl+R'), self)
-        reset_shortcut.activated.connect(self.reset_dock_layout)
-
-        # ESC로 종료
-        exit_shortcut = QShortcut(QKeySequence('ESC'), self)
-        exit_shortcut.activated.connect(self.close)
-
     def toggle_dock_area(self):
         """도크 영역 토글"""
         self.dock_area_visible = not self.dock_area_visible
@@ -223,11 +234,11 @@ class MainWindow(QMainWindow):
 
         if self.dock_area_visible:
             # 도크 영역이 다시 보일 때 레이아웃 복원
-            self.reset_dock_layout()
+            self._reset_dock_layout()
             # 고정 너비 설정
-            self.set_dock_width(self.dock_area_width)
+            self._set_dock_width(self.dock_area_width)
 
-    def set_dock_width(self, width):
+    def _set_dock_width(self, width):
         """도크 영역 너비 설정"""
         self.dock_area_width = width
 
@@ -251,7 +262,7 @@ class MainWindow(QMainWindow):
                 Qt.Horizontal
             )
 
-    def reset_dock_layout(self):
+    def _reset_dock_layout(self):
         """도크 레이아웃을 4분할로 복원"""
         if not self.dock_area_visible:
             return
@@ -272,11 +283,4 @@ class MainWindow(QMainWindow):
         self.splitDockWidget(self.dock_top_right, self.dock_bottom_right, Qt.Vertical)
 
         # 너비 설정 적용
-        self.set_dock_width(self.dock_area_width)
-
-    def on_resize(self, event):
-        """윈도우 크기 변경 시 도크 영역 너비 조정"""
-        super().resizeEvent(event)
-        if self.dock_area_visible:
-            self.dock_area_width = self.width() - 80
-            self.set_dock_width(self.dock_area_width)
+        self._set_dock_width(self.dock_area_width)

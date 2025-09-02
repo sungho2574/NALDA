@@ -1,9 +1,12 @@
+import time
+
 from PySide6.QtCore import QObject, Signal, Slot
 from .lib.xmlHandler import XmlHandler
 
 
 class AttitudeOverviewManager(QObject):
     messageUpdated = Signal(dict)  # 메시지 업데이트 시그널
+    newPidGains = Signal(int, list, bool)     # 새로운 PID 게인 시그널
 
     def __init__(self):
         super().__init__()
@@ -41,3 +44,22 @@ class AttitudeOverviewManager(QObject):
             'fields': fields
         }
         return meta_data
+
+    @Slot(dict)
+    def sendPidValues(self, pid_gains: dict):
+        # print(f'pid gains: {pid_gains}')
+        angle_gains = [
+            pid_gains['angle']['roll']['p'], pid_gains['angle']['roll']['i'], pid_gains['angle']['roll']['d'],
+            pid_gains['angle']['pitch']['p'], pid_gains['angle']['pitch']['i'], pid_gains['angle']['pitch']['d'],
+            pid_gains['angle']['yaw']['p'], pid_gains['angle']['yaw']['i'], pid_gains['angle']['yaw']['d'],
+        ]
+        rate_gains = [
+            pid_gains['rate']['roll']['p'], pid_gains['rate']['roll']['i'], pid_gains['rate']['roll']['d'],
+            pid_gains['rate']['pitch']['p'], pid_gains['rate']['pitch']['i'], pid_gains['rate']['pitch']['d'],
+            pid_gains['rate']['yaw']['p'], pid_gains['rate']['yaw']['i'], pid_gains['rate']['yaw']['d'],
+        ]
+        # print(f'angle gains: {angle_gains}')
+        # print(f'rate gains: {rate_gains}')
+        self.newPidGains.emit(250, angle_gains, True)
+        time.sleep(0.1)
+        self.newPidGains.emit(251, rate_gains, True)
