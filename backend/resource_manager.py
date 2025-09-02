@@ -12,4 +12,4 @@ class ResourceManager(QObject):
 
     @Slot(str, result=str)
     def getUrl(self, path):
-        return os.path.join(self._prefix, path)
+        return 'file:///' + os.path.join(self._prefix, path)
