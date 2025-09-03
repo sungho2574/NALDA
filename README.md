@@ -39,12 +39,12 @@ cd NALDA
 
 ### Python 가상환경 구성
 
-- Python 3.12.11
+- [Python 3.12.10 install](https://www.python.org/downloads/release/python-31210/)
 
 1. 가상 환경 생성
 
    ```bash
-   python venv -p 3.12.11
+   python -m venv
    ```
 
 2. 가상 환경 활성화
@@ -57,12 +57,6 @@ cd NALDA
 
    ```bash
    pip install -r requirements.txt
-   ```
-
-   or
-
-   ```bash
-   pip install PySide6 numpy pyserial pyinstaller
    ```
 
 ### 실행
