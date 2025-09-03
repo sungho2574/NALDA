@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal, Slot
-from .lib.xmlHandler import XmlHandler
+from .MiniLink.lib.xmlHandler import XmlHandler
 
 
 class SensorGraphManager(QObject):

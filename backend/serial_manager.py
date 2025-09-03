@@ -5,8 +5,8 @@ import serial.tools.list_ports
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from .lib.MiniLink import MiniLink
-from .lib.xmlHandler import XmlHandler
+from .MiniLink.MiniLink import MiniLink
+from .MiniLink.lib.xmlHandler import XmlHandler
 
 
 class SerialManager(QObject):
@@ -197,7 +197,7 @@ class SerialManager(QObject):
         try:
             if is_float:
                 data = list(struct.pack("<" + "f" * len(data), *data))
-            self.mav.send([msg_id, data])
+            self.mav.send(msg_id, data)
             print(f"메시지 {msg_id} 전송 성공: {data}")
         except Exception as e:
             print(f"메시지 전송 실패: {str(e)}")
