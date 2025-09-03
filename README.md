@@ -2,7 +2,7 @@
 
     NALDA (NARAE Aero Link & Data Analysis)
 
-나래에서 개발한 GCS(Grond Control System).<br>
+인하대학교 모형항공기 동아리 나래에서 개발한 GCS(Grond Control System).<br>
 
 - 팀장 : 김성호
 
@@ -25,6 +25,13 @@ NALDA/
 ```
 
 ## 실행 방법
+
+### Project clone
+
+```bash
+git clone --recurse-submodules https://github.com/NARAE-INHA-UNIV/NALDA
+cd NALDA
+```
 
 ### Python 가상환경 구성
 
@@ -66,6 +73,14 @@ NALDA/
    ```bash
    python main.py
    ```
+
+### Project update
+
+```bash
+git pull
+git submodule update
+```
+
 
 ## 빌드 방법
 
