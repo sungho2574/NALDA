@@ -323,7 +323,9 @@ ColumnLayout {
                                 border.width: 1
                                 
                                 Text {
-                                    text: sensorGraphRoot.selectedMessageValues[tableRow.index].toString()
+                                    text: (tableRow.index !== undefined && sensorGraphRoot.selectedMessageValues.length > tableRow.index)
+                                          ? sensorGraphRoot.selectedMessageValues[tableRow.index].toString()
+                                          : ""
                                     color: "#dddddd"
                                     font.pixelSize: 12
                                     anchors.centerIn: parent
