@@ -1,6 +1,10 @@
 # NALDA
 
-    NALDA (NARAE Aero Link & Data Analysis)
+![alt text](NALDA.png)
+
+<p align="center">
+    <em>NALDA (NARAE Aero Link & Data Analysis)</em>
+</p>
 
 인하대학교 모형항공기 동아리 나래에서 개발한 GCS(Grond Control System).<br>
 
