@@ -30,7 +30,7 @@ NALDA/
 
 ```bash
 git clone --recurse-submodules https://github.com/NARAE-INHA-UNIV/NALDA
-cd MiniLink_cli
+cd NALDA
 ```
 
 ### Python 가상환경 구성
