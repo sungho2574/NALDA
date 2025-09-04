@@ -89,7 +89,7 @@ Rectangle {
                     
                     // 마우스 휠 줌 기능
                     WheelHandler {
-                        onWheel: {
+                        onWheel: function (event) {
                             var delta = event.angleDelta.y / 120 // 표준 휠 스크롤 단위
                             var newZoomLevel = map.zoomLevel + delta * 0.5
                             
