@@ -1,6 +1,10 @@
 
 
-// 비디오 재송출 코드 
+
+
+// *** 테스트 과정에서 작성했던 비디오 "재송출" 코드이므로 카메라 수령 후엔 단순 송출 기능으로 변환하여 서버를 구축하면 됨. 
+
+
 #include <gst/gst.h>
 #include <gst/rtsp-server/rtsp-server.h>
 
@@ -27,14 +31,14 @@ int main(int argc, char *argv[]) {
 
     // rtspsrc를 사용하여 IP 카메라 앱의 스트림을 받기
     // location 주소는 실제 스마트폰 앱에 표시된 주소로 변경함
-    gst_rtsp_media_factory_set_launch(factory,
-        "( rtspsrc location=rtsp://192.168.48.25:8080/h264_ulaw.sdp latency=0 ! rtph264pay name=pay0 pt=96 )");
-
+    // gst_rtsp_media_factory_set_launch(factory,
+    //     "( rtspsrc location=rtsp://192.168.48.25:8080/h264_ulaw.sdp latency=0 ! rtph264pay name=pay0 pt=96 )");
 
     // [수정된 파이프라인]
-    // 안드로이드폰 영상을 디코딩한 후, 표준 x264로 다시 인코딩하여 호환성을 높임
-    // gst_rtsp_media_factory_set_launch(factory,
-    //     "( rtspsrc location=rtsp://192.168.48.25:8080/h264_ulaw.sdp latency=0 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! x264enc tune=zerolatency ! rtph264pay name=pay0 pt=96 )");
+    // 안드로이드폰 영상을 디코딩한 후, 표준 x264로 다시 인코딩하여 호환성을 높임 
+    // TODO -> 테스트 결과 실패(Qt앱 FFmpeg 오류, ReadMe 참고) / 카메라 준비 완료 후 파이프라인 재구성 필요 
+    gst_rtsp_media_factory_set_launch(factory,
+        "( rtspsrc location=rtsp://172.30.1.41:8080/h264_ulaw.sdp latency=0 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! x264enc tune=zerolatency ! rtph264pay name=pay0 pt=96 )");
 
     gst_rtsp_mount_points_add_factory(mounts, "/phone_stream", factory);
     g_object_unref(mounts);
