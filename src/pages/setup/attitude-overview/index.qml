@@ -25,6 +25,17 @@ ColumnLayout {
     onHtmlLoadedChanged: {
         if (htmlLoaded) {
             var metaData = attitudeOverviewManager.setTargetMessage(attitudeOverviewRoot.selectedMessageId);
+
+            // 단위를 rad에서 degree로 변환
+            for (var i = 0; i < metaData.fields.length; i++) {
+                if (metaData.fields[i].units === "rad") {
+                    metaData.fields[i].units = "degree";
+                }
+                if (metaData.fields[i].units === "rad/s") {
+                    metaData.fields[i].units = "degree/s";
+                }
+            }
+
             attitudeOverviewRoot.messageFrame = metaData.fields;
 
             var jsCode = `window.receiveGraphMetaData(${JSON.stringify(metaData.fields)});`;
@@ -38,6 +49,12 @@ ColumnLayout {
 
         function onMessageUpdated(data) {
             // 자세 업데이트
+            // 30번 ATTITUDE 값은 rad 이므로 변환
+            data.roll = data.roll * 180 / 3.14592;
+            data.pitch = data.pitch * 180 / 3.14592;
+            data.yaw = data.yaw * 180 / 3.14592;
+
+            // 3D 모델 자세 업데이트
             attitudeOverviewRoot.rollAngle = data.roll;
             attitudeOverviewRoot.pitchAngle = data.pitch;
             attitudeOverviewRoot.yawAngle = data.yaw;
