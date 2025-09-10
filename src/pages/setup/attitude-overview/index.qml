@@ -25,6 +25,17 @@ ColumnLayout {
     onHtmlLoadedChanged: {
         if (htmlLoaded) {
             var metaData = attitudeOverviewManager.setTargetMessage(attitudeOverviewRoot.selectedMessageId);
+
+            // 단위를 rad에서 degree로 변환
+            for (var i = 0; i < metaData.fields.length; i++) {
+                if (metaData.fields[i].units === "rad") {
+                    metaData.fields[i].units = "degree";
+                }
+                if (metaData.fields[i].units === "rad/s") {
+                    metaData.fields[i].units = "degree/s";
+                }
+            }
+
             attitudeOverviewRoot.messageFrame = metaData.fields;
 
             var jsCode = `window.receiveGraphMetaData(${JSON.stringify(metaData.fields)});`;
