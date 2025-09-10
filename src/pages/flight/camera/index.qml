@@ -12,14 +12,15 @@ Rectangle {
     // 버튼 클릭 시 이 값이 바뀌고, 아래 streamUrl이 자동으로 갱신됨
     property string cameraType: "forward"
 
-    // 전방/하방 카메라의 RTSP 스트림 주소를 외부에서 전달받음
-    property string forwardCameraUrl: "rtsp://192.168.1.10:8554/forward_stream"
-    property string downwardCameraUrl: "rtsp://192.168.1.10:8554/downward_stream"
+    // [테스트용 Url] IOS나 ANDROID 핸드폰에 존재하던 영상송출 앱을 활용하면 아래 주소만 적어도 영상이 출력됨. 
+    property string testCameraUrl: "rtsp://172.30.1.23:8080/h264_ulaw.sdp"
 
-    // 현재 선택된 카메라에 따라 영상 소스가 자동으로 바뀜
-    // QML의 property 바인딩(자동 연결)으로, cameraType이 바뀌면 streamUrl도 자동 변경
-    // Qt C++의 signal-slot과 유사하게 동작하므로 별도 시그널슬롯 메커니즘을 만들 필요는 없다
-    property string streamUrl: cameraType === "forward" ? forwardCameraUrl : downwardCameraUrl
+        // 현재 선택된 카메라에 따라 영상 소스가 자동으로 바뀜
+        // QML의 property 바인딩(자동 연결)으로, cameraType이 바뀌면 streamUrl도 자동 변경
+        property string forwardCameraUrl: "rtsp://172.30.1.32:8554/forward_stream"
+        property string downwardCameraUrl: "rtsp://172.30.1.32:8554/downward_stream"
+        // TODO ** GStreamer또는 FFmpeg서버를 구축 후 기체에 달린 카메라로부터 데이터를 받아올 때 아래 Url을 사용 
+        property string streamUrl: cameraType === "forward" ? forwardCameraUrl : downwardCameraUrl
 
     // 카메라 타입 변경 시 로그 출력
     onCameraTypeChanged: {
@@ -37,7 +38,7 @@ Rectangle {
         Video {
             id: videoDisplay
             anchors.fill: parent
-            source: videoStream.streamUrl // streamUrl이 바뀌면 자동으로 영상 소스가 바뀜
+            source: testCameraUrl //TODO 서버 구축후 streamUrl로 변경 
             autoPlay: true
         }
 
