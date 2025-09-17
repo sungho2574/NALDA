@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtWebEngine 1.10
+import Styles 1.0
 
 ColumnLayout {
     id: attitudeOverviewRoot
@@ -72,7 +73,7 @@ ColumnLayout {
     // 상단 제목
     Text {
         text: "자세 시각화"
-        color: "#dddddd"
+        color: Colors.textPrimary
         font.pixelSize: 24
         font.bold: true
     }
@@ -145,11 +146,11 @@ ColumnLayout {
                         id: fixedCoordinateCheckBox
                         text: "고정좌표계 표시"
                         checked: true
-                        Material.accent: "#33803F"
+                        Material.accent: Colors.green
 
                         contentItem: Text {
                             text: fixedCoordinateCheckBox.text
-                            color: "#dddddd"
+                            color: Colors.textPrimary
                             font.pixelSize: 14
                             leftPadding: fixedCoordinateCheckBox.indicator.width + fixedCoordinateCheckBox.spacing
                             verticalAlignment: Text.AlignVCenter
@@ -164,11 +165,11 @@ ColumnLayout {
                         id: auxiliaryCoordinateCheckBox
                         text: "보조좌표계 표시"
                         checked: true
-                        Material.accent: "#33803F"
+                        Material.accent: Colors.green
 
                         contentItem: Text {
                             text: auxiliaryCoordinateCheckBox.text
-                            color: "#dddddd"
+                            color: Colors.textPrimary
                             font.pixelSize: 14
                             leftPadding: auxiliaryCoordinateCheckBox.indicator.width + auxiliaryCoordinateCheckBox.spacing
                             verticalAlignment: Text.AlignVCenter
@@ -240,7 +241,7 @@ ColumnLayout {
                         // 섹션 제목
                         Text {
                             text: "PID 제어 이득 설정"
-                            color: "#dddddd"
+                            color: Colors.textPrimary
                             font.pixelSize: 20
                             font.bold: true
                         }
@@ -248,7 +249,7 @@ ColumnLayout {
                         // 설명 텍스트
                         Text {
                             text: "각도 제어(상단)와 각속도 제어(하단) 이득을 설정하세요."
-                            color: "#aaaaaa"
+                            color: Colors.gray100
                             font.pixelSize: 16
                         }
 
@@ -261,165 +262,222 @@ ColumnLayout {
                             columnSpacing: 15
 
                             // 헤더 행 (빈 셀 + P, I, D 라벨)
-                            Item { Layout.preferredWidth: 100; Layout.preferredHeight: 30 }
-                            
-                            Text { 
-                                text: "P"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 16; 
-                                font.bold: true;
-                                horizontalAlignment: Text.AlignHCenter;
+                            Item {
+                                Layout.preferredWidth: 100
+                                Layout.preferredHeight: 30
+                            }
+
+                            Text {
+                                text: "P"
+                                color: Colors.textPrimary
+                                font.pixelSize: 16
+                                font.bold: true
+                                horizontalAlignment: Text.AlignHCenter
                                 Layout.preferredWidth: 120
                             }
-                            
-                            Text { 
-                                text: "I"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 16; 
-                                font.bold: true;
-                                horizontalAlignment: Text.AlignHCenter;
+
+                            Text {
+                                text: "I"
+                                color: Colors.textPrimary
+                                font.pixelSize: 16
+                                font.bold: true
+                                horizontalAlignment: Text.AlignHCenter
                                 Layout.preferredWidth: 120
                             }
-                            
-                            Text { 
-                                text: "D"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 16; 
-                                font.bold: true;
-                                horizontalAlignment: Text.AlignHCenter;
+
+                            Text {
+                                text: "D"
+                                color: Colors.textPrimary
+                                font.pixelSize: 16
+                                font.bold: true
+                                horizontalAlignment: Text.AlignHCenter
                                 Layout.preferredWidth: 120
                             }
 
                             // 각도 제어 (angle) - Roll
-                            Text { 
-                                text: "Roll 각도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Roll 각도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: rollAngleP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: "#333333"
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: rollAngleI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: "#333333"
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: rollAngleD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
 
                             // 각도 제어 (angle) - Pitch
-                            Text { 
-                                text: "Pitch 각도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Pitch 각도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: pitchAngleP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: pitchAngleI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: pitchAngleD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
 
                             // 각도 제어 (angle) - Yaw
-                            Text { 
-                                text: "Yaw 각도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Yaw 각도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: yawAngleP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: yawAngleI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: yawAngleD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
 
                             // 구분선 (빈 공간)
@@ -431,135 +489,189 @@ ColumnLayout {
                             }
 
                             // 각속도 제어 (rate) - Roll
-                            Text { 
-                                text: "Roll 각속도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Roll 각속도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: rollRateP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: rollRateI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: rollRateD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
 
                             // 각속도 제어 (rate) - Pitch
-                            Text { 
-                                text: "Pitch 각속도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Pitch 각속도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: pitchRateP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: pitchRateI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: pitchRateD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
 
                             // 각속도 제어 (rate) - Yaw
-                            Text { 
-                                text: "Yaw 각속도"; 
-                                color: "#dddddd"; 
-                                font.pixelSize: 14;
+                            Text {
+                                text: "Yaw 각속도"
+                                color: Colors.textPrimary
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 100
                             }
-                            
+
                             TextField {
                                 id: yawRateP
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: yawRateI
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
-                            
+
                             TextField {
                                 id: yawRateD
                                 text: "0.0"
-                                color: "#dddddd"
-                                background: Rectangle { color: "#333333"; radius: 4 }
+                                color: Colors.textPrimary
+                                background: Rectangle {
+                                    color: Colors.backgroundTertiary
+                                    radius: 4
+                                }
                                 selectByMouse: true
                                 Layout.preferredWidth: 120
                                 Layout.preferredHeight: 36
                                 horizontalAlignment: TextInput.AlignHCenter
-                                validator: DoubleValidator { bottom: 0.0; decimals: 6 }
+                                validator: DoubleValidator {
+                                    bottom: 0.0
+                                    decimals: 6
+                                }
                             }
                         }
 
@@ -570,22 +682,21 @@ ColumnLayout {
                             Layout.topMargin: 20
                             Layout.preferredWidth: 180
                             Layout.preferredHeight: 50
-                            
-                            
+
                             contentItem: Text {
                                 text: sendPidButton.text
                                 font.pixelSize: 14
-                                color: "white"
+                                color: Colors.white
                                 font.weight: 600
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                             }
-                            
+
                             background: Rectangle {
-                                color: sendPidButton.pressed ? "#225529" : "#33803F"
+                                color: sendPidButton.pressed ? Qt.darker(Colors.primary, 1.2) : Colors.primary
                                 radius: 8
                             }
-                            
+
                             onClicked: {
                                 // PID 값을 수집하여 객체로 구성
                                 var pidValues = {
@@ -624,7 +735,7 @@ ColumnLayout {
                                         }
                                     }
                                 };
-                                
+
                                 // 백엔드로 PID 값 전송 (attitudeOverviewManager를 통해)
                                 attitudeOverviewManager.sendPidValues(pidValues);
                                 // console.log("PID 값 전송:", JSON.stringify(pidValues));

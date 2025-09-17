@@ -4,10 +4,11 @@ import QtQuick.Controls 2.15
 import QtLocation 5.15
 import QtPositioning 5.15
 import QtQuick.Dialogs
+import Styles 1.0
 
 Rectangle {
     id: planPage
-    color: "#2a2a2a"
+    color: Colors.backgroundSecondary
     radius: 8
 
     property var waypoints: []

@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
+import Styles 1.0
 
 ColumnLayout {
     id: connectSerialRoot
@@ -23,7 +24,7 @@ ColumnLayout {
 
     Text {
         text: "보드 연결"
-        color: "#dddddd"
+        color: Colors.textPrimary
         font.pixelSize: 24
         font.bold: true
     }
@@ -38,7 +39,7 @@ ColumnLayout {
 
             Text {
                 text: "Port"
-                color: "#999999"
+                color: Colors.gray100
                 font.pixelSize: 14
                 font.bold: true
             }
@@ -67,7 +68,7 @@ ColumnLayout {
 
                         background: Rectangle {
                             anchors.fill: parent
-                            color: delegateItem.hovered ? "#555555" : "transparent"
+                            color: delegateItem.hovered ? Colors.gray500 : "transparent"
                         }
 
                         Column {
@@ -78,14 +79,14 @@ ColumnLayout {
 
                             Text {
                                 text: delegateItem.model.device || ""
-                                color: "#dddddd"
+                                color: Colors.textPrimary
                                 font.pixelSize: 14
                                 font.bold: true
                             }
 
                             Text {
                                 text: delegateItem.model.description || ""
-                                color: "#999999"
+                                color: Colors.gray100
                                 font.pixelSize: 12
                             }
                         }
@@ -108,21 +109,21 @@ ColumnLayout {
 
                             Text {
                                 text: portComboBox.currentIndex >= 0 ? (portComboBox.model[portComboBox.currentIndex]?.device || "") : ""
-                                color: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading) ? "#dddddd" : "#999999"
+                                color: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading) ? Colors.textPrimary : Colors.gray100
                                 font.pixelSize: 14
                                 font.bold: true
                             }
 
                             Text {
                                 text: portComboBox.currentIndex >= 0 ? (portComboBox.model[portComboBox.currentIndex]?.description || "") : ""
-                                color: "#999999"
+                                color: Colors.gray100
                                 font.pixelSize: 12
                             }
                         }
 
                         Text {
                             text: portComboBox.currentIndex === -1 ? "포트를 선택하세요" : ""
-                            color: "#777777"
+                            color: Colors.gray300
                             font.pixelSize: 14
                             anchors.left: parent.left
                             anchors.leftMargin: 12
@@ -138,8 +139,8 @@ ColumnLayout {
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
                     Layout.alignment: Qt.AlignBottom
-                    color: refreshMouseArea.containsMouse ? "#666666" : "#555555"
                     radius: 6
+                    color: refreshButton.enabled ? (refreshMouseArea.containsMouse ? Qt.darker(Colors.gray400, 1.1) : Colors.gray400) : Colors.gray600
                     enabled: !(connectSerialRoot.connectionStatusIsSuccess || connectSerialRoot.connectionLoading)
 
                     Image {
@@ -154,6 +155,7 @@ ColumnLayout {
                         id: refreshMouseArea
                         anchors.fill: parent
                         hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             updatePortList();
                         }
@@ -169,7 +171,7 @@ ColumnLayout {
 
             Text {
                 text: "Baud rate"
-                color: "#999999"
+                color: Colors.gray100
                 font.pixelSize: 14
                 font.bold: true
             }
@@ -194,31 +196,38 @@ ColumnLayout {
                 text: connectSerialRoot.connectionLoading ? (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제 중..." : "연결 중...") : (connectSerialRoot.connectionStatusIsSuccess ? "연결 해제하기" : "연결하기")
                 enabled: !connectSerialRoot.connectionLoading // 연결 중일 때 비활성화
                 background: Rectangle {
-                    color: connectButton.enabled ? (connectSerialRoot.connectionStatusIsSuccess ? "#D74532" : "#66BB6A") : "#444444"  // 비활성화 시 회색
+                    color: connectButton.enabled ? (connectSerialRoot.connectionStatusIsSuccess ? (mouseArea.containsMouse ? Qt.darker(Colors.red, 1.05) : Colors.red) : (mouseArea.containsMouse ? Qt.darker(Colors.green, 1.05) : Colors.green)) : Colors.gray600
                     radius: 8
                 }
                 contentItem: Text {
                     text: connectButton.text
-                    color: "white"
+                    color: Colors.textPrimary
                     font.pixelSize: 14
                     font.weight: 700
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                onClicked: {
-                    if (portComboBox.currentIndex === -1) {
-                        console.log("포트를 선택해주세요.");
-                        return;
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (portComboBox.currentIndex === -1) {
+                            console.log("포트를 선택해주세요.");
+                            return;
+                        }
+
+                        // 버튼을 연결 중 상태로 변경
+                        connectSerialRoot.connectionLoading = true;
+                        connectSerialRoot.connectionStatusVisible = false;
+
+                        // 0.5초 후에 연결 함수 실행
+                        // UI 업데이트할 시간 확보
+                        connectionTimer.start();
                     }
-
-                    // 버튼을 연결 중 상태로 변경
-                    connectSerialRoot.connectionLoading = true;
-                    connectSerialRoot.connectionStatusVisible = false;
-
-                    // 0.5초 후에 연결 함수 실행
-                    // UI 업데이트할 시간 확보
-                    connectionTimer.start();
                 }
 
                 Timer {
@@ -264,9 +273,9 @@ ColumnLayout {
 
                 Text {
                     text: connectSerialRoot.connectionStatusIsSuccess ? "Connection Successful" : "Connection Failed. Please Try Again."
-                    color: connectSerialRoot.connectionStatusIsSuccess ? "#66BB6A" : "#D74532"
+                    color: connectSerialRoot.connectionStatusIsSuccess ? Colors.green : Colors.red
                     font.pixelSize: 14
-                    font.weight: 400
+                    font.weight: 500
                 }
             }
         }
