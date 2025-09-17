@@ -25,8 +25,8 @@ class DockableWidget(QWidget):
         layout = QVBoxLayout(self)
         self.qml_widget = QQuickWidget()
 
-        # QML 소스를 로드하기 전에 컨텍스트 프로퍼티를 먼저 설정
-        # 메인 윈도우에서 등록된 벡엑드 리소스들을 등록
+        # QML 소스를 로드하기 전에 컨텍스트를 먼저 설정
+        # 메인 윈도우에서 등록된 벡엑드 리소스를 등록
         context = self.qml_widget.rootContext()
         for manager_name, manager in managers:
             context.setContextProperty(manager_name, manager)
@@ -106,8 +106,12 @@ class MainWindow(QMainWindow):
         # send 이벤트
         self.attitude_overview_manager.newPidGains.connect(self.serial_manager.send_message)
 
+        # 위젯 생성
         central_widget = QQuickWidget()
         context = central_widget.rootContext()
+        engine = central_widget.engine()
+
+        # 벡엔드 연결
         context.setContextProperty("tooltipManager", self.tooltip_manager)
         context.setContextProperty("dockManager", self.dock_manager)
         context.setContextProperty("serialManager", self.serial_manager)
@@ -116,6 +120,13 @@ class MainWindow(QMainWindow):
         context.setContextProperty("attitudeOverviewManager", self.attitude_overview_manager)
         context.setContextProperty("resourceManager", self.resource_manager)
 
+        # 전역 스타일 설정
+        src_path = resource_path("src")
+        styles_path = resource_path("src/styles")
+        engine.addImportPath(src_path)
+        engine.addImportPath(styles_path)
+
+        # main.qml 설정
         qml_file = resource_path("src/main.qml")
         central_widget.setSource(QUrl.fromLocalFile(qml_file))
         central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)

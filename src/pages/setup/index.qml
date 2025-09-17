@@ -1,21 +1,32 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
-
+import Styles 1.0
 
 Rectangle {
     id: setupPage
-    color: "#2a2a2a"
+    color: Colors.backgroundSecondary
     radius: 8
 
     property var menuItems: [
-        { id: 1, name: "보드 연결", source: "connect-serial/index.qml" },
-        { id: 2, name: "센서값 시각화", source: "sensor-graph/index.qml" },
-        { id: 3, name: "자세 시각화", source: "attitude-overview/index.qml" },
+        {
+            id: 1,
+            name: "보드 연결",
+            source: "connect-serial/index.qml"
+        },
+        {
+            id: 2,
+            name: "센서값 시각화",
+            source: "sensor-graph/index.qml"
+        },
+        {
+            id: 3,
+            name: "자세 시각화",
+            source: "attitude-overview/index.qml"
+        },
     ]
     property int selectedMenuId: 1
 
-
-    RowLayout{
+    RowLayout {
         anchors.fill: parent
 
         // 설정 메뉴 목록
@@ -28,7 +39,7 @@ Rectangle {
             menuItems: setupPage.menuItems
 
             // 사이드바에서 선택된 페이지를 업데이트
-            onMenuSelected: (menuId) => {
+            onMenuSelected: menuId => {
                 setupPage.selectedMenuId = menuId;
             }
         }
