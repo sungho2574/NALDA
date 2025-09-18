@@ -3,7 +3,7 @@ import sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QSplashScreen
-from PySide6.QtGui import QFontDatabase, QFont, QPixmap
+from PySide6.QtGui import QFontDatabase, QFont, QPixmap, QIcon
 
 from windows.main_window import MainWindow
 from backend.utils import resource_path
@@ -33,7 +33,10 @@ def main():
     # 전역 폰트 설정
     set_font(app)
 
-    # # 스플래시 스크린 표시
+    # 아이콘 설정 (타이틀, 작업 표시줄)
+    app.setWindowIcon(QIcon(resource_path("src/assets/app.ico")))
+
+    # 스플래시 스크린 표시
     splash_pixmap = QPixmap(resource_path("src/assets/splash.png")).scaled(544, 308, Qt.KeepAspectRatio)
     splash = QSplashScreen(splash_pixmap)
     splash.show()
