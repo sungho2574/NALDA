@@ -66,6 +66,9 @@ class MainWindow(QMainWindow):
         self.dock_area_width = self.width() - 80
         self._set_dock_width(self.dock_area_width)
 
+        # 최소 크기 설정
+        self.setMinimumSize(1280, 720)
+
         # 전체화면으로 변경
         # 마지막에 호출해야 레이아웃이 제대로 적용됨
         self.showMaximized()
