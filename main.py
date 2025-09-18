@@ -34,7 +34,7 @@ def main():
     set_font(app)
 
     # 아이콘 설정 (타이틀, 작업 표시줄)
-    app.setWindowIcon(QIcon(resource_path("src/assets/icon.png")))
+    app.setWindowIcon(QIcon(resource_path("src/assets/app.ico")))
 
     # 스플래시 스크린 표시
     splash_pixmap = QPixmap(resource_path("src/assets/splash.png")).scaled(544, 308, Qt.KeepAspectRatio)
