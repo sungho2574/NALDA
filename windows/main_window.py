@@ -11,6 +11,7 @@ from backend.dock_manager import DockManager
 from backend.gps_manager import GpsManager
 from backend.resource_manager import ResourceManager
 from backend.pfd_maganer import PFDManager
+from backend.parameter_setting_manager import ParameterSettingManager
 
 from backend.utils import resource_path
 
@@ -96,6 +97,7 @@ class MainWindow(QMainWindow):
         self.sensor_graph_manager = SensorGraphManager()
         self.attitude_overview_manager = AttitudeOverviewManager()
         self.resource_manager = ResourceManager()
+        self.parameter_setting_manager = ParameterSettingManager()
 
         # 독 전용 컨텍스트
         self.pfd_manager = PFDManager()
@@ -122,6 +124,8 @@ class MainWindow(QMainWindow):
         context.setContextProperty("sensorGraphManager", self.sensor_graph_manager)
         context.setContextProperty("attitudeOverviewManager", self.attitude_overview_manager)
         context.setContextProperty("resourceManager", self.resource_manager)
+        context.setContextProperty("parameterSettingManager", self.parameter_setting_manager)
+        context.setContextProperty("yourTreeModel", self.parameter_setting_manager.tree_model)
 
         # 전역 스타일 설정
         src_path = resource_path("src")
