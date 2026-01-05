@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
     def _load_stylesheet(self):
         """스타일시트 파일 로드"""
         try:
-            stylesheet_path = resource_path("src/styles.qss")
+            stylesheet_path = resource_path("frontend/styles.qss")
             with open(stylesheet_path, 'r', encoding='utf-8') as file:
                 stylesheet = file.read()
                 self.setStyleSheet(stylesheet)
@@ -128,13 +128,11 @@ class MainWindow(QMainWindow):
         context.setContextProperty("yourTreeModel", self.parameter_setting_manager.tree_model)
 
         # 전역 스타일 설정
-        src_path = resource_path("src")
-        styles_path = resource_path("src/styles")
-        engine.addImportPath(src_path)
-        engine.addImportPath(styles_path)
+        frontend_path = resource_path("frontend")
+        engine.addImportPath(frontend_path)
 
         # main.qml 설정
-        qml_file = resource_path("src/main.qml")
+        qml_file = resource_path("frontend/main.qml")
         central_widget.setSource(QUrl.fromLocalFile(qml_file))
         central_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
         self.setCentralWidget(central_widget)
@@ -164,7 +162,7 @@ class MainWindow(QMainWindow):
         self.dock_top_left = QDockWidget('카메라', self)
         widget_top_left = DockableWidget(
             title='카메라',
-            qml_path='src/pages/flight/camera/index.qml',
+            qml_path='frontend/pages/flight/camera/index.qml',
             managers=[]
         )
         self.dock_top_left.setWidget(widget_top_left)
@@ -174,7 +172,7 @@ class MainWindow(QMainWindow):
         self.dock_top_right = QDockWidget('PFD', self)
         widget_top_right = DockableWidget(
             title='PFD',
-            qml_path='src/pages/flight/pfd/index.qml',
+            qml_path='frontend/pages/flight/pfd/index.qml',
             managers=[
                 ('pfdManager', self.pfd_manager),
             ]
@@ -186,7 +184,7 @@ class MainWindow(QMainWindow):
         self.dock_bottom_left = QDockWidget('ND', self)
         widget_bottom_left = DockableWidget(
             title='ND',
-            qml_path='src/pages/flight/nd/index.qml',
+            qml_path='frontend/pages/flight/nd/index.qml',
             managers=[
                 ('resourceManager', self.resource_manager),
                 ('gpsManager', self.gps_manager),
@@ -199,7 +197,7 @@ class MainWindow(QMainWindow):
         self.dock_bottom_right = QDockWidget('Etc Panels', self)
         widget_bottom_right = DockableWidget(
             title='Etc Panels',
-            qml_path='src/pages/flight/etc-panels/index.qml',
+            qml_path='frontend/pages/flight/etc-panels/index.qml',
             managers=[
                 ('gpsManager', self.gps_manager),
             ]
