@@ -60,7 +60,7 @@ cd NALDA
 3. 의존성 설치
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r src/requirements.txt
    ```
 
 ### 실행
@@ -73,6 +73,7 @@ cd NALDA
 
 2. 실행
    ```bash
+   cd src
    python main.py
    ```
 
